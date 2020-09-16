@@ -12,12 +12,23 @@ import {
   useParams
 } from "react-router-dom";
 
+import socketIOClient from 'socket.io-client';
+
 import logo from './logo.svg';
 import './App.css';
 
 var Sentencer = require('sentencer');
 
+var socket = undefined;
+
 const port = 4567;
+
+const ensureSocket = () => {
+  if(typeof(socket) === 'undefined'){
+    socket = socketIOClient(`http://localhost:${port}`);
+    console.log('socket created!', socket);
+  }
+}
 
 const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
@@ -25,67 +36,37 @@ const suggestId = () => {
 
 const Game = withRouter(({ history }) => {
 
-
   const [playerid, setPlayerid] = useState(suggestId());
   const [playerjoined, setPlayerJoined] = useState(false);
   const [done, setDone] = useState(false);
-
   
   let { sessionid } = useParams();
   const [session, setSession] = useState({});
 
-  const getSession = (sessionid) => {
-    fetch(`http://localhost:${port}/play/${sessionid}`, {
-      mode: 'cors',
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-    .then(response => response.json())
-    .then(session => {
-      console.log(session);
-      setSession(session);
-    })
-    .catch(e => { console.warn(`fetching 'play/${sessionid}' failed`, e); });
-  }
+  // an effect that runs on first render
+  useEffect(() => {
+    console.log('game page');
+    ensureSocket();
 
-  const putSession = (sessionid, update) => {
-    // TODO: don't just get/put the whole session dummy. do it in pieces w/ endpoints for various things like players, words, definitions, etc...
-    fetch(`http://localhost:${port}/play/${sessionid}`, {
-      mode: 'cors',
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(update),
-    })
-    .then(response => response.json())
-    .then(session => {
-      console.log(session);
-      setSession(session);
-    })
-    .catch(e => { console.warn(`fetching 'play/${sessionid}' failed`, e); });
-  }
+    socket.on(sessionid, (data) => {
+      const new_session = data;
+      console.log(`got game state: `, new_session);
+      setSession(JSON.parse(new_session))
+    });
 
-  const deleteSession = (sessionid) => {
-    fetch(`http://localhost:${port}/play/${sessionid}`, {
-      mode: 'cors',
-      method: 'DELETE',
-    })
-    .catch(e => { console.warn(`fetching 'play/${sessionid}' failed`, e); });
-  }
+    console.log(`joining room '${sessionid}'`);
+    const join_req = {
+      id: sessionid,
+      join: true,
+    }
+    socket.emit('door', JSON.stringify(join_req));
 
-  // an effect when the user navigates
-  useEffect(() => history.listen(() => {
-      console.log('user is navigating away....');
-      // use this time to update the active players
-      if(true){ // if no more players are playing (todo:)
-        deleteSession(sessionid);
-      }
-  }), [])
-
-
+    console.log('requesting game state');
+    const read_req = {
+      id: sessionid,
+    }
+    socket.emit('read', JSON.stringify(read_req));
+  }, []);
 
   return (
     <div>
@@ -111,6 +92,14 @@ const Game = withRouter(({ history }) => {
           disabled={playerjoined}
           onClick={(e) => {
             setPlayerJoined(true);
+            const update = {
+              $push: {'players': {id: playerid }}
+            };
+            const update_req = {
+              id: sessionid,
+              update: update,
+            }
+            socket.emit('update', JSON.stringify(update_req));
           }}
         >
           accept
@@ -120,31 +109,12 @@ const Game = withRouter(({ history }) => {
       <div>
         {/* game info here */}
         {session.id}
-        {session.players && session.players.forEach(player => {
-          console.log(player)
-          return player;
-        })}
       </div>
 
 
-      <div>
-        <button onClick={(e) => { getSession(sessionid); }}>
-          GET
-        </button>
-
-        <button onClick={(e) => { putSession(sessionid, {players: [playerid]}); }}>
-          PUT
-        </button>
-
-        <button
-          onClick={(e) => {
-            deleteSession(sessionid);
-            setDone(true);
-          }}
-        >
-          DELETE
-        </button>
-      </div>
+      <pre>
+        {JSON.stringify(session, null, 2)}
+      </pre>
 
       {done && <Redirect to={`/`}/>}
 
@@ -165,6 +135,11 @@ const Start = (props) => {
 
   const [sessionid, setsessionid] = useState(suggestId());
   const [start, setStart] = useState(false);
+
+  useEffect(() => {
+    console.log('start page');
+    ensureSocket();
+  }, []);
 
   return (
     <div>
@@ -191,22 +166,11 @@ const Start = (props) => {
 
       <button
         onClick={(e) => {
-
-          fetch(`http://localhost:${port}/play/${sessionid}`, {
-            mode: 'cors',
-            method: 'POST',
-            // headers: {
-            //   'content-type': 'application/json',
-            // },
-          })
-          .then((response) => {
-            if(response.ok){
-              setStart(true);
-              return;
-            }
-            /* indicate failure */
-          })
-          .catch(e => { console.warn(`posting 'play/${sessionid}' failed`, e); });
+          const create_req = {
+            id: sessionid,
+          }
+          socket.emit('create', JSON.stringify(create_req));
+          setStart(true);
         }}
       >
         Start Game
