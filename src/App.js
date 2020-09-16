@@ -212,7 +212,20 @@ const Games = (props) => {
 const Start = (props) => {
 
   const [sessionid, setSessionid] = useState(suggestId());
+  const [idactive, setIDActive] = useState(false);
   const [start, setStart] = useState(false);
+
+  // an effect that runs on first render
+  useEffect(() => {
+    console.log('start page');
+    ensureSocket();
+
+    socket.on('idstatus', (data) => {
+      const res = JSON.parse(data);
+      console.log('received id status', res.active)
+      setIDActive(res.active);
+    })
+  }, []);
 
   return (
     <div>
@@ -233,7 +246,13 @@ const Start = (props) => {
         type='text'
         value={sessionid}
         onChange={(e) => {
-          setSessionid(e.target.value);
+          const new_sessionid = e.target.value;
+          setSessionid(new_sessionid);
+          console.log('checking', new_sessionid);
+          const idstatus_req = {
+            id: new_sessionid
+          }
+          socket.emit('idstatus', JSON.stringify(idstatus_req));
         }}
       />
 
@@ -242,7 +261,7 @@ const Start = (props) => {
           setStart(true);
         }}
       >
-        Start Game
+        {`${(idactive) ? 'join' : 'start'} game`}
       </button>
 
       {start && <Redirect to={`/play/${sessionid}`}/>}
