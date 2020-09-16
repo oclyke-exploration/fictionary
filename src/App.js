@@ -24,10 +24,11 @@ var socket = undefined;
 const port = 4567;
 
 const ensureSocket = () => {
-  if(typeof(socket) === 'undefined'){
-    socket = socketIOClient(`http://localhost:${port}`);
-    console.log('socket created!', socket);
+  if((typeof(socket) !== 'undefined') && (socket.connected)){
+    return;
   }
+  socket = socketIOClient(`http://localhost:${port}`);
+  console.log('socket created!', socket);
 }
 
 const suggestId = () => {
@@ -37,11 +38,13 @@ const suggestId = () => {
 const Game = withRouter(({ history }) => {
 
   const [playerid, setPlayerid] = useState(suggestId());
-  const [playerjoined, setPlayerJoined] = useState(false);
   const [done, setDone] = useState(false);
   
   let { sessionid } = useParams();
   const [session, setSession] = useState({});
+
+  const [word, setWord] = useState('');
+  const [definition, setDefinition] = useState('');
 
   // an effect that runs on first render
   useEffect(() => {
@@ -57,9 +60,8 @@ const Game = withRouter(({ history }) => {
     console.log(`joining room '${sessionid}'`);
     const join_req = {
       id: sessionid,
-      join: true,
     }
-    socket.emit('door', JSON.stringify(join_req));
+    socket.emit('join', JSON.stringify(join_req));
 
     console.log('requesting game state');
     const read_req = {
@@ -67,6 +69,11 @@ const Game = withRouter(({ history }) => {
     }
     socket.emit('read', JSON.stringify(read_req));
   }, []);
+
+  // an effect when the user navigates
+  useEffect(() => history.listen(() => {
+    socket.disconnect();  // when all sockets disconnect the game will be deleted
+  }), [])
 
   return (
     <div>
@@ -83,15 +90,16 @@ const Game = withRouter(({ history }) => {
         <input
           type='text'
           value={playerid}
-          disabled={playerjoined}
           onChange={(e) => {
             setPlayerid(e.target.value);
           }}
         />
         <button
-          disabled={playerjoined}
           onClick={(e) => {
-            setPlayerJoined(true);
+            const matching_players = session.players.filter(player => player.id === playerid);
+            if(matching_players.length){
+              return;
+            }
             const update = {
               $push: {'players': {id: playerid }}
             };
@@ -109,12 +117,82 @@ const Game = withRouter(({ history }) => {
       <div>
         {/* game info here */}
         {session.id}
+        <button
+          onClick={() => {
+            console.log('requesting game state');
+            const read_req = {
+              id: sessionid,
+            }
+            socket.emit('read', JSON.stringify(read_req));
+          }}
+        >
+          refresh
+        </button>
+      </div>
+
+      {/* propose a new word */}
+      <div>
+        <br/>
+        <div>
+          propose a new word
+        </div>
+        <input
+          type='text'
+          value={word}
+          placeholder='word'
+          onChange={(e) => {
+            setWord(e.target.value);
+          }}
+        />
+        <input
+          type='text'
+          value={definition}
+          placeholder='definition'
+          onChange={(e) => {
+            setDefinition(e.target.value);
+          }}
+        />
+        <button
+          onClick={(e) => {
+            const update = {
+              $push:{
+                'words': {
+                  proposer: playerid,
+                  word: word,
+                  definitions: {
+                    real: {
+                      definition: definition,
+                    },
+                    fake: [],
+                  },
+                },
+              },
+            };
+            const update_req = {
+              id: sessionid,
+              update: update,
+            }
+            socket.emit('update', JSON.stringify(update_req));
+
+            setWord('');
+            setDefinition('');
+          }}
+        >
+          submit new word
+        </button>
       </div>
 
 
-      <pre>
-        {JSON.stringify(session, null, 2)}
-      </pre>
+      <div>
+        <br/>
+        <div>
+          game state
+        </div>
+        <pre>
+          {JSON.stringify(session, null, 2)}
+        </pre>
+      </div>
+
 
       {done && <Redirect to={`/`}/>}
 
@@ -133,13 +211,8 @@ const Games = (props) => {
 
 const Start = (props) => {
 
-  const [sessionid, setsessionid] = useState(suggestId());
+  const [sessionid, setSessionid] = useState(suggestId());
   const [start, setStart] = useState(false);
-
-  useEffect(() => {
-    console.log('start page');
-    ensureSocket();
-  }, []);
 
   return (
     <div>
@@ -150,7 +223,7 @@ const Start = (props) => {
 
       <button
         onClick={(e) => {
-          setsessionid(suggestId());
+          setSessionid(suggestId());
         }}
       >
         Suggest Name
@@ -160,16 +233,12 @@ const Start = (props) => {
         type='text'
         value={sessionid}
         onChange={(e) => {
-          setsessionid(e.target.value);
+          setSessionid(e.target.value);
         }}
       />
 
       <button
         onClick={(e) => {
-          const create_req = {
-            id: sessionid,
-          }
-          socket.emit('create', JSON.stringify(create_req));
           setStart(true);
         }}
       >
