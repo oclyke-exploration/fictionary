@@ -57,11 +57,23 @@ const Game = withRouter(({ history }) => {
       setSession(JSON.parse(new_session))
     });
 
+    socket.on('playerrename', (data) => {
+      const res = JSON.parse(data);
+      console.log('got player rename result: ', res);
+    });
+
     console.log(`joining room '${sessionid}'`);
     const join_req = {
       id: sessionid,
     }
     socket.emit('join', JSON.stringify(join_req));
+
+    console.log('adding player');
+    const addplayer_req = {
+      id: sessionid,
+      playerid: playerid,
+    };
+    socket.emit('addplayer', JSON.stringify(addplayer_req));
 
     console.log('requesting game state');
     const read_req = {
@@ -91,43 +103,56 @@ const Game = withRouter(({ history }) => {
           type='text'
           value={playerid}
           onChange={(e) => {
-            setPlayerid(e.target.value);
+            const new_playerid = e.target.value;
+            const playerrename_req = {
+              id: sessionid,
+              from: playerid,
+              to: new_playerid,
+            }
+            socket.emit('playerrename', JSON.stringify(playerrename_req));
+            
+            
+            // setPlayerid(new_playerid);
+            // const matching_players = session.players.filter(player => player.id === playerid);
+            // if(matching_players.length){
+            //   return;
+            // }
+            // const update = {
+            //   $push: {'players': {id: playerid }}
+            // };
+            // const update_req = {
+            //   id: sessionid,
+            //   update: update,
+            // }
+            // socket.emit('update', JSON.stringify(update_req));
           }}
         />
-        <button
-          onClick={(e) => {
-            const matching_players = session.players.filter(player => player.id === playerid);
-            if(matching_players.length){
-              return;
-            }
-            const update = {
-              $push: {'players': {id: playerid }}
-            };
-            const update_req = {
-              id: sessionid,
-              update: update,
-            }
-            socket.emit('update', JSON.stringify(update_req));
-          }}
-        >
-          accept
-        </button>
       </div>
 
       <div>
-        {/* game info here */}
-        {session.id}
-        <button
-          onClick={() => {
-            console.log('requesting game state');
-            const read_req = {
-              id: sessionid,
-            }
-            socket.emit('read', JSON.stringify(read_req));
-          }}
-        >
-          refresh
-        </button>
+        <div>Scoreboard</div>
+        {session.players && session.players.map((player) => {
+          const getScore = (playerid) => {
+            var score = 0;
+            session.words.forEach((word) => {
+              if(word.author === playerid){
+                word.definitions.real.votes.forEach((vote) => {
+
+                });
+              }
+
+              // if you guess the right def +2
+              // if someone guesses your incorrect definition +1
+              // if nobody guesses the real definition the author gets +N where N is number of players who have voted on the word
+
+              // when a word is proposed all of the players who were present are recorded
+              // all those players are registered to vote on the word
+              // when all the registered voters have voted the word is 'closed' and the votes / scores are revealed
+              // there is a hidden button that allows you to close a word early - in which case non-voters will not affect the score
+            })
+          }
+          return (<div>{player.id}: {}</div>);
+        })}
       </div>
 
       {/* propose a new word */}
@@ -154,14 +179,17 @@ const Game = withRouter(({ history }) => {
         />
         <button
           onClick={(e) => {
+            const voters = session.players.filter(player => player.id !== playerid);
             const update = {
               $push:{
                 'words': {
                   proposer: playerid,
                   word: word,
+                  voters: voters,
                   definitions: {
                     real: {
                       definition: definition,
+                      votes: [],
                     },
                     fake: [],
                   },
