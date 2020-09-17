@@ -28,8 +28,8 @@ const uji = (event, payload) => { // uniform JSON initiator
 
 const uje = (event, cb) => { // uniform JSON endpoint
   const handler = (data) => {
-    console.log(`got response for event '${event}'`);
     const msg = JSON.parse(data);
+    console.log(`response for event '${event}'`, msg);
     cb(event, msg);
   }
   socket.on(event, handler);
@@ -62,6 +62,15 @@ const Game = withRouter(({ history }) => {
   useEffect(() => {
     console.log('game page');
     ensureSocket();
+
+    uje('join', (event, msg) => {
+    });
+
+    uje('session', (event, msg) => {
+      setSession(msg.res);
+    });
+
+    uji('join', sessionid);
   }, []);
 
   // an effect when the user navigates
