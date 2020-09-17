@@ -53,7 +53,7 @@ const Game = withRouter(({ history }) => {
   const [done, setDone] = useState(false);
   
   let { sessionid } = useParams();
-  const [session, setSession] = useState({});
+  const [session, setSession] = useState({players: [{id: playerid}]});
 
   const [word, setWord] = useState('');
   const [definition, setDefinition] = useState('');
@@ -70,7 +70,7 @@ const Game = withRouter(({ history }) => {
       setSession(msg.res);
     });
 
-    uji('join', sessionid);
+    uji('join', {sessionid: sessionid, initial: session});
   }, []);
 
   // an effect when the user navigates
