@@ -58,6 +58,8 @@ const Game = withRouter(({ history }) => {
   const [word, setWord] = useState('');
   const [definition, setDefinition] = useState('');
 
+  const [fake_defs, setFakeDefs] = useState([]);
+
   // an effect that runs on first render
   useEffect(() => {
     console.log('game page');
@@ -83,6 +85,83 @@ const Game = withRouter(({ history }) => {
       <Link to={`/`}>
         Fictionary
       </Link>
+
+      <div>
+        <div>
+          propose word
+        </div>
+        <div>
+          <input
+            value={word}
+            placeholder='word'
+            onChange={(e) => {
+              setWord(e.target.value);
+            }}
+            />
+          <input
+            value={definition}
+            placeholder='definition'
+            onChange={(e) => {
+              setDefinition(e.target.value);
+            }}
+            />
+          <button
+            onClick={(e) => {
+              uji('add_word', {id: sessionid, author: playerid, word: word, definition: definition});
+              setWord('');
+              setDefinition('');
+            }}
+          >
+            submit
+          </button>
+        </div>
+      </div>
+
+      {/* words */}
+      <div>
+      {(typeof(session.words) !== 'undefined') && session.words.map((word, idx) => {
+        return (
+          <div key={`word_entry_${idx}`}>
+            <div>word: {word.value}</div>
+            <div>reader: {word.reader}</div>
+            {((word.reader !== playerid) && (word.definitions.fakes.filter(entry => entry.author === playerid).length === 0) && (word.voters.includes(playerid))) && 
+              <>
+              <input
+                value={(typeof(fake_defs[idx]) === 'undefined') ? '' : fake_defs[idx]}
+                placeholder='fake definition'
+                onChange={(e) => {
+                  var new_fake_defs = [...fake_defs];
+                  new_fake_defs[idx] = e.target.value;
+                  setFakeDefs(new_fake_defs);
+                }}
+                />
+              <button
+                onClick={(e) => {
+                  uji('add_definition', {id: sessionid, author: playerid, word: word.value, definition: fake_defs[idx]});
+                  var new_fake_defs = [...fake_defs];
+                  new_fake_defs[idx] = '';
+                  setFakeDefs(new_fake_defs);
+                }}
+              >
+                submit
+              </button>
+              </>
+            }
+            {(word.definitions.fakes.length === word.voters.length) && 
+              <div>
+                {word.definitions.fakes.map((definition, idx) => {
+                  return (
+                    <div key={`fake_def_${idx}`}>
+                      {definition.value}
+                    </div>
+                  );
+                })}
+              </div>
+            }
+          </div>
+        );
+      })}
+      </div>
 
       <div>
         <br/>
