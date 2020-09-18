@@ -47,6 +47,24 @@ const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
 }
 
+const shuffle = (array) => {
+  var m = array.length, t, i;
+
+  // While there remain elements to shuffle…
+  while (m) {
+
+    // Pick a remaining element…
+    i = Math.floor(Math.random() * m--);
+
+    // And swap it with the current element.
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+
+  return array;
+}
+
 const Game = withRouter(({ history }) => {
 
   const [playerid, setPlayerid] = useState(suggestId());
@@ -120,11 +138,18 @@ const Game = withRouter(({ history }) => {
       {/* words */}
       <div>
       {(typeof(session.words) !== 'undefined') && session.words.map((word, idx) => {
+
+        const canfake = ((word.reader !== playerid) && (word.definitions.fakes.filter(entry => entry.author === playerid).length === 0) && (word.voters.includes(playerid)));
+        const faked = (word.definitions.fakes.length === word.voters.length);
+        var shuffled_definitions = shuffle([...word.definitions.fakes, word.definitions.real]);
+
+        const canvote = ((word.definitions.fakes.filter(entry => entry.votes.includes(playerid)).length === 0) && !word.definitions.real.votes.includes(playerid));
+
         return (
           <div key={`word_entry_${idx}`}>
             <div>word: {word.value}</div>
             <div>reader: {word.reader}</div>
-            {((word.reader !== playerid) && (word.definitions.fakes.filter(entry => entry.author === playerid).length === 0) && (word.voters.includes(playerid))) && 
+            {canfake && 
               <>
               <input
                 value={(typeof(fake_defs[idx]) === 'undefined') ? '' : fake_defs[idx]}
@@ -147,12 +172,21 @@ const Game = withRouter(({ history }) => {
               </button>
               </>
             }
-            {(word.definitions.fakes.length === word.voters.length) && 
+            {faked && 
               <div>
-                {word.definitions.fakes.map((definition, idx) => {
+                {shuffled_definitions.map((definition, idx) => {
                   return (
                     <div key={`fake_def_${idx}`}>
                       {definition.value}
+                    {canvote && 
+                      <button
+                        onClick={(e) => {
+                          console.log(`${playerid} voted for definition: '${definition.value}'`);
+                        }}
+                      >
+                        choose
+                      </button>
+                      }
                     </div>
                   );
                 })}
