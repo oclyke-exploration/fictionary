@@ -201,7 +201,7 @@ const Game = withRouter(({ history }) => {
                     {canvote &&
                       <button
                         onClick={(e) => {
-                          uji('add_vote', {id: sessionid, word: word, definition: fake_defs[idx], voter: player});
+                          uji('add_vote', {id: sessionid, word: word, definition: definition, voter: player});
                         }}
                       >
                         choose
