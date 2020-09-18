@@ -1,33 +1,35 @@
-import React, {useState, useEffect} from 'react';
-
+import React, {
+  useState,
+  useEffect,
+} from 'react';
 import {
   BrowserRouter as Router,
   withRouter,
   Switch,
   Route,
   Link,
-  Prompt,
   Redirect,
   useRouteMatch,
-  useParams
+  useParams,
 } from "react-router-dom";
-
 import socketIOClient from 'socket.io-client';
 
-import logo from './logo.svg';
+import {Player, Definition, Word, Session} from './Elements';
+
 import './App.css';
 
 var Sentencer = require('sentencer');
 
 const port = 4567;
-var socket = undefined;
+let socket: SocketIOClient.Socket;
 
-const uji = (event, payload) => { // uniform JSON initiator
+const uji = (event: string, payload: object | string) => { // uniform JSON initiator
   socket.emit(event, JSON.stringify(payload));
 }
 
-const uje = (event, cb) => { // uniform JSON endpoint
-  const handler = (data) => {
+type UJEmsg = {req: unknown, res: unknown}
+const uje = (event: string, cb: (event: string, msg: UJEmsg) => void) => { // uniform JSON endpoint
+  const handler = (data: any) => {
     const msg = JSON.parse(data);
     console.log(`response for event '${event}'`, msg);
     cb(event, msg);
@@ -47,7 +49,7 @@ const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
 }
 
-const shuffle = (array) => {
+const shuffle = (array: any[]) => {
   var m = array.length, t, i;
 
   // While there remain elements to shuffle…
@@ -66,17 +68,17 @@ const shuffle = (array) => {
 }
 
 const Game = withRouter(({ history }) => {
-
-  const [playerid, setPlayerid] = useState(suggestId());
-  const [done, setDone] = useState(false);
-  
   let { sessionid } = useParams();
-  const [session, setSession] = useState({players: [{id: playerid}]});
 
-  const [word, setWord] = useState('');
-  const [definition, setDefinition] = useState('');
+  const [gohome, setGohome] = useState(false);
+  
+  const [player, setPlayer] = useState<Player>(new Player(suggestId()));
+  const [session, setSession] = useState<Session>(new Session(sessionid).addPlayer(player));
 
-  const [fake_defs, setFakeDefs] = useState([]);
+  const [proposedDefinition, setProposedDefinition] = useState<Definition>(new Definition('', player));
+  const [proposedWord, setProposedWord] = useState<Word>(new Word('', proposedDefinition, player));
+
+  const [fake_defs, setFakeDefs] = useState<Definition[]>([]);
 
   // an effect that runs on first render
   useEffect(() => {
@@ -87,10 +89,10 @@ const Game = withRouter(({ history }) => {
     });
 
     uje('session', (event, msg) => {
-      setSession(msg.res);
+      setSession(Session.fromUnknown(msg.res));
     });
 
-    uji('join', {sessionid: sessionid, initial: session});
+    uji('join', session);
   }, []);
 
   // an effect when the user navigates
@@ -105,29 +107,37 @@ const Game = withRouter(({ history }) => {
       </Link>
 
       <div>
+        player: {player.id}
+      </div>
+
+      <div>
         <div>
           propose word
         </div>
         <div>
           <input
-            value={word}
+            value={proposedWord.value}
             placeholder='word'
             onChange={(e) => {
-              setWord(e.target.value);
+              setProposedWord(new Word(e.target.value, proposedDefinition, player));
             }}
             />
           <input
-            value={definition}
+            value={proposedDefinition.value}
             placeholder='definition'
             onChange={(e) => {
-              setDefinition(e.target.value);
+              const new_definition = new Definition(e.target.value, player);
+              setProposedDefinition(new_definition);
+              setProposedWord(new Word(proposedWord.value, new_definition, player));
             }}
             />
           <button
             onClick={(e) => {
-              uji('add_word', {id: sessionid, author: playerid, word: word, definition: definition});
-              setWord('');
-              setDefinition('');
+              console.log(proposedWord);
+              uji('add_word', {id: sessionid, word: proposedWord});
+              const new_definition = new Definition('', player);
+              setProposedDefinition(new_definition);
+              setProposedWord(new Word('', new_definition, player));
             }}
           >
             submit
@@ -138,33 +148,44 @@ const Game = withRouter(({ history }) => {
       {/* words */}
       <div>
       {(typeof(session.words) !== 'undefined') && session.words.map((word, idx) => {
+        const canfake = ((word.author.id !== player.id) && (word.definitions.filter(def => def.author.id === player.id).length === 0) && (word.voters.filter(voter => voter.id === player.id).length !== 0));
+        const faked = (word.definitions.length === word.voters.length + 1);
+        var shuffled_definitions = shuffle(word.definitions);
+        
+        var already_voted = false;
+        word.definitions.forEach((def) => {
+          def.votes.forEach((voter) => {
+            if(voter.id === player.id){
+              already_voted = true;
+            }
+          });
+        });
+        
+        const is_voter = (word.voters.filter(voter => voter.id === player.id).length !== 0);
+        const canvote = (is_voter && !already_voted);
 
-        const canfake = ((word.reader !== playerid) && (word.definitions.fakes.filter(entry => entry.author === playerid).length === 0) && (word.voters.includes(playerid)));
-        const faked = (word.definitions.fakes.length === word.voters.length);
-        var shuffled_definitions = shuffle([...word.definitions.fakes, word.definitions.real]);
-
-        const canvote = ((word.definitions.fakes.filter(entry => entry.votes.includes(playerid)).length === 0) && !word.definitions.real.votes.includes(playerid));
+        console.log('already voted: ', already_voted, 'is_voter: ', is_voter, 'can vote: ', canvote);
 
         return (
           <div key={`word_entry_${idx}`}>
             <div>word: {word.value}</div>
-            <div>reader: {word.reader}</div>
+            <div>author: {word.author.id}</div>
             {canfake && 
               <>
               <input
-                value={(typeof(fake_defs[idx]) === 'undefined') ? '' : fake_defs[idx]}
+                value={(typeof(fake_defs[idx]) === 'undefined') ? '' : fake_defs[idx].value}
                 placeholder='fake definition'
                 onChange={(e) => {
                   var new_fake_defs = [...fake_defs];
-                  new_fake_defs[idx] = e.target.value;
+                  new_fake_defs[idx] = new Definition(e.target.value, player);
                   setFakeDefs(new_fake_defs);
                 }}
                 />
               <button
                 onClick={(e) => {
-                  uji('add_definition', {id: sessionid, author: playerid, word: word.value, definition: fake_defs[idx]});
+                  uji('add_definition', {id: sessionid, word: word, definition: fake_defs[idx]});
                   var new_fake_defs = [...fake_defs];
-                  new_fake_defs[idx] = '';
+                  new_fake_defs[idx] = new Definition('', player);
                   setFakeDefs(new_fake_defs);
                 }}
               >
@@ -175,13 +196,16 @@ const Game = withRouter(({ history }) => {
             {faked && 
               <div>
                 {shuffled_definitions.map((definition, idx) => {
+                  const owndef = (definition.author.id === player.id);
                   return (
                     <div key={`fake_def_${idx}`}>
                       {definition.value}
-                    {canvote && 
+                    {canvote && !owndef &&
                       <button
                         onClick={(e) => {
-                          console.log(`${playerid} voted for definition: '${definition.value}'`);
+                          console.log(`${player.id} voted for definition: '${definition.value}'`);
+                          // // voting is a todo: until the 
+                          // uji('add_vote', {id: sessionid, word: word, definition: fake_defs[idx], voter: player});
                         }}
                       >
                         choose
@@ -208,13 +232,13 @@ const Game = withRouter(({ history }) => {
       </div>
 
 
-      {done && <Redirect to={`/`}/>}
+      {gohome && <Redirect to={`/`}/>}
 
     </div>
   );
 });
 
-const Games = (props) => {
+const Games = (props: any) => {
   let root = useRouteMatch();
   return (
     <Switch>
@@ -223,10 +247,10 @@ const Games = (props) => {
   );
 }
 
-const Start = (props) => {
+const Start = (props: any) => {
 
   const [sessionid, setSessionid] = useState(suggestId());
-  const [idactive, setIDActive] = useState(false);
+  const [idactive, setIDActive] = useState<boolean>(false);
   const [start, setStart] = useState(false);
 
   // an effect that runs on first render
@@ -235,7 +259,9 @@ const Start = (props) => {
     ensureSocket();
 
     uje('idstatus', (event, msg) => {
-      setIDActive(msg.res);
+      if(typeof(msg.res) === 'boolean'){
+        setIDActive(msg.res);
+      }
     });
 
   }, []);
@@ -278,7 +304,7 @@ const Start = (props) => {
   );
 }
 
-function App() {
+const App = () => {
   return (
     <Router>
       <Switch>
