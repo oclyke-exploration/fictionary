@@ -162,9 +162,6 @@ const Game = withRouter(({ history }) => {
         });
         
         const is_voter = (word.voters.filter(voter => voter.id === player.id).length !== 0);
-        const canvote = (is_voter && !already_voted);
-
-        console.log('already voted: ', already_voted, 'is_voter: ', is_voter, 'can vote: ', canvote);
 
         return (
           <div key={`word_entry_${idx}`}>
@@ -197,15 +194,14 @@ const Game = withRouter(({ history }) => {
               <div>
                 {shuffled_definitions.map((definition, idx) => {
                   const owndef = (definition.author.id === player.id);
+                  const canvote = (is_voter && !already_voted && !owndef);
                   return (
                     <div key={`fake_def_${idx}`}>
                       {definition.value}
-                    {canvote && !owndef &&
+                    {canvote &&
                       <button
                         onClick={(e) => {
-                          console.log(`${player.id} voted for definition: '${definition.value}'`);
-                          // // voting is a todo: until the 
-                          // uji('add_vote', {id: sessionid, word: word, definition: fake_defs[idx], voter: player});
+                          uji('add_vote', {id: sessionid, word: word, definition: fake_defs[idx], voter: player});
                         }}
                       >
                         choose
