@@ -295,7 +295,7 @@ const Start = (props: any) => {
         {`${(idactive) ? 'join' : 'start'} game`}
       </button>
 
-      {start && <Redirect to={`/play/${sessionid}`}/>}
+      {start && <Redirect to={`/fictionary/${sessionid}`}/>}
     </div>
   );
 }
@@ -304,7 +304,7 @@ const App = () => {
   return (
     <Router>
       <Switch>
-        <Route path='/play/' component={Games}/>
+        <Route path='/fictionary/' component={Games}/>
         <Route component={Start}/>
       </Switch>
     </Router>
