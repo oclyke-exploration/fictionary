@@ -7,7 +7,7 @@ import {
   withRouter,
   Switch,
   Route,
-  Link,
+  Link as RouterLink,
   Redirect,
   useRouteMatch,
   useParams,
@@ -17,6 +17,7 @@ import socketIOClient from 'socket.io-client';
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
 
 import SessionSelector from './SessionSelector';
 
@@ -120,9 +121,9 @@ const Game = withRouter(({ history }) => {
 
   return (
     <div>
-      <Link to={`/`}>
+      <RouterLink to={`/`}>
         Fictionary
-      </Link>
+      </RouterLink>
 
       <div>
         player: {player.id}
@@ -266,6 +267,8 @@ const Start = (props: any) => {
   const [idactive, setIDActive] = useState<boolean>(false);
   const [start, setStart] = useState(false);
 
+  const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
+
   // an effect that runs on first render
   useEffect(() => {
     console.log('start page');
@@ -311,7 +314,9 @@ const Start = (props: any) => {
             </Grid>
             <Grid item>
               <Typography variant='subtitle2' align='center'>
-                echoic tech llc
+                <Link href='https://echoictech.com' target='_blank' rel='noreferrer'>
+                  echoic tech llc
+                </Link>
               </Typography>
             </Grid>
           </Grid>
