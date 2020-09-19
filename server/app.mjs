@@ -60,17 +60,12 @@ var server = app.listen(port, async () => {
 
     const requestCreateSession = (id) => {
       return new Promise((resolve, reject) => {
-        const new_session = {
-          id: id,
-          players: [],
-          words: [],
-        }
         requestReadSession(id)
         .then((session) => {
           reject('session already exists');
         })
         .catch((e) => { // a failed request to read a session indicates that the session does not exist, thus can be created
-          mongoclient.db('fictionary').collection('sessions').insertOne(new_session)
+          mongoclient.db('fictionary').collection('sessions').insertOne(new Elements.Session(id))
           .then((command_result) => {
             if(command_result.result.ok){
               resolve();
@@ -146,7 +141,7 @@ var server = app.listen(port, async () => {
 
     ujm('join', async (event, session) => {
       const id = session.id;
-      const player = session.players[0];
+      const player = Elements.Player.fromObj(session.players[0]);
       var res = false;
       try {
         if(typeof(session_clients[id]) === 'undefined'){
@@ -186,8 +181,7 @@ var server = app.listen(port, async () => {
 
     ujm('add_word', async (event, req) => {
       const id = req.id;
-      let word = req.word;
-
+      let word = Elements.Word.fromObj(req.word);
       var res = false;
       await requestReadSession(id).then( async (session) => {
         word.voters = session.players.filter(player => player.id !== word.author.id);
@@ -208,8 +202,8 @@ var server = app.listen(port, async () => {
 
     ujm('add_definition', async (event, req) => {
       const id = req.id;
-      const word = req.word;
-      const definition = req.definition;
+      const word = Elements.Word.fromObj(req.word);
+      const definition = Elements.Definition.fromObj(req.definition);
 
       var res = false;
       await requestReadSession(id).then( async (session) => {
@@ -232,9 +226,9 @@ var server = app.listen(port, async () => {
 
     ujm('add_vote', async (event, req) => {
       const id = req.id;
-      const voter = req.voter;
-      const word = req.word;
-      const definition = req.definition;
+      const voter = Elements.Player.fromObj(req.voter);
+      const word = Elements.Word.fromObj(req.word);
+      const definition = Elements.Definition.fromObj(req.definition);
 
       var res = false;
       await requestReadSession(id).then( async (session) => {

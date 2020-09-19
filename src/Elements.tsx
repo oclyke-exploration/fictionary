@@ -1,3 +1,4 @@
+import { O_RDONLY } from "constants";
 
 function hasOwnProperty<X extends {}, Y extends PropertyKey>(obj: X, prop: Y): obj is X & Record<Y, unknown> {
   return obj.hasOwnProperty(prop)
@@ -7,6 +8,11 @@ class Player {
   id: string
   constructor (id: string) {
     this.id = id;
+  }
+
+  static fromObj (obj: Player) {
+    let player = new Player(obj.id);
+    return player;
   }
 }
 
@@ -18,6 +24,16 @@ class Definition {
     this.value = value;
     this.author = author;
     this.votes = [];
+  }
+
+  addVote (vote: Player) {
+    this.votes.push(vote);
+  }
+
+  static fromObj (obj: Definition) {
+    let definition = new Definition(obj.value, obj.author);
+    obj.votes.forEach((vote) => { definition.addVote(vote); });
+    return definition;
   }
 }
 
@@ -31,6 +47,24 @@ class Word {
     this.author = author;
     this.voters = [];
     this.definitions = [definition];
+  }
+
+  addVoter (voter: Player) {
+    this.voters.push(voter);
+  }
+
+  addDefinition (definition: Definition) {
+    this.definitions.push(definition);
+  }
+
+  static fromObj (obj: Word) {
+    let real_defs = obj.definitions.filter(def => def.author.id === obj.author.id);
+    let fake_defs = obj.definitions.filter(def => def.author.id !== obj.author.id);
+    if(real_defs.length !== 1){ throw 'word must contain one real definition'; }
+    let word = new Word(obj.value, real_defs[0], obj.author);
+    obj.voters.forEach((voter) => { word.addVoter(voter); });
+    fake_defs.forEach(def => { word.addDefinition(def); });
+    return word;
   }
 }
 
