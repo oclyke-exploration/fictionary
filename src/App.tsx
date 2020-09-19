@@ -14,9 +14,13 @@ import {
 } from "react-router-dom";
 import socketIOClient from 'socket.io-client';
 
-import {Player, Definition, Word, Session} from './Elements';
+import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 
-import './App.css';
+import SessionSelector from './SessionSelector';
+
+import {Player, Definition, Word, Session} from './Elements';
 
 var Sentencer = require('sentencer');
 
@@ -66,6 +70,20 @@ const shuffle = (array: any[]) => {
 
   return array;
 }
+
+
+const WordCard = (props: any) => {
+  return (
+    <>
+      {props.word.value}
+    </>
+  );
+}
+
+
+
+
+
 
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
@@ -244,7 +262,6 @@ const Games = (props: any) => {
 }
 
 const Start = (props: any) => {
-
   const [sessionid, setSessionid] = useState(suggestId());
   const [idactive, setIDActive] = useState<boolean>(false);
   const [start, setStart] = useState(false);
@@ -263,40 +280,47 @@ const Start = (props: any) => {
   }, []);
 
   return (
-    <div>
-
-      <div>
-        Welcome to Fictionary!
-      </div>
-
-      <button
-        onClick={(e) => {
-          setSessionid(suggestId());
-        }}
-      >
-        Suggest Name
-      </button>
-
-      <input
-        type='text'
-        value={sessionid}
-        onChange={(e) => {
-          const new_sessionid = e.target.value;
-          setSessionid(new_sessionid);
-          uji('idstatus', new_sessionid);
-        }}
-      />
-
-      <button
-        onClick={(e) => {
-          setStart(true);
-        }}
-      >
-        {`${(idactive) ? 'join' : 'start'} game`}
-      </button>
+    <>
+      <Grid container>
+        <Grid item xs={1}  sm={2}  md={3}/>
+        <Grid item xs={10} sm={8}  md={6}>
+          <Grid item container direction='column'>
+            <Grid item>
+              <Typography variant='h1' align='center' style={{fontSize: 48}}>
+                fictionary
+              </Typography>
+            </Grid>
+            <Grid item>
+              <SessionSelector
+                id={sessionid}
+                join={idactive}
+                onSuggest={(e) => {
+                  const newid = suggestId();
+                  setSessionid(newid);
+                  uji('idstatus', newid);
+                }}
+                onChange={(e) => {
+                  const newid = e.target.value;
+                  setSessionid(newid);
+                  uji('idstatus', newid);
+                }}
+                onSubmit={(e) => {
+                  setStart(true);
+                }}
+              />
+            </Grid>
+            <Grid item>
+              <Typography variant='subtitle2' align='center'>
+                echoic tech llc
+              </Typography>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item xs={1}  sm={2}  md={3}/>
+      </Grid>
 
       {start && <Redirect to={`/fictionary/${sessionid}`}/>}
-    </div>
+    </>
   );
 }
 
