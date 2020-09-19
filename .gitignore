@@ -1,5 +1,9 @@
-# secrets
+# secrets (you should implement these files yourself!)
 server/secrets.*
+
+# transpiled files (look in the readme for how to generate these)
+server/Elements.js
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

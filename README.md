@@ -1,3 +1,16 @@
+# fictionary
+
+# using the server
+* install your dependencies (```npm install``` or something like that)
+* use the typescript compiler to generate ```server/Elements.js``` w/ ```tsc -outDir server src/Elements.tsx```
+* run the server ```node server/app.mjs```
+
+# running the development env for the front end
+```yarn start``` (the start script has been modified to also build server files, but the server must be started manually)
+
+
+# original create-react-app documentation
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
