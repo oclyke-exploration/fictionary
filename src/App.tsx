@@ -36,6 +36,7 @@ import { GithubPicker } from 'react-color'
 import SessionSelector from './SessionSelector';
 import WordProposer from './WordProposer';
 import WordCard from './WordCard';
+import PlayerCard, {getScore} from './PlayerCard';
 
 import {Player, Definition, Word, Session} from './Elements';
 
@@ -79,54 +80,6 @@ const ensureSocket = () => {
 const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
 }
-
-const getScore = (session: Session, player: Player) => {
-  // compute the player's score
-  let score = 0;
-  session.words.forEach(word => {
-
-    let votes = 0;
-    word.definitions.forEach(def => { votes += def.votes.length; });
-    const voted = (votes === (word.voters.length));
-    if(!voted){
-      return; // do not count words that have not been fully voted
-    }
-
-    let realdefs = word.definitions.filter(def => def.author.id === word.author.id);
-    if(realdefs.length !== 1){
-      throw 'there should always be one and only one real definition!';
-    }
-    let realdef = realdefs[0];
-
-    let playersdefs = word.definitions.filter(def => def.author.id === player.id);
-    if(playersdefs.length > 1){
-      throw 'each player should have at most one definition'
-    }
-    const playersdef = playersdefs[0];
-
-    // if the real definition is not selected at all the word author gets as many points as there were voters
-    if(word.author.id === player.id){
-      if(realdef.votes.length === 0){
-        score += word.voters.length;
-      }
-    }
-
-    // if the voter guesses the correct definition they are awarded +2 points
-    // (word authors cannot vote and so cannot earn points this way)
-    if(realdef.votes.map(voter => voter.id).includes(player.id)){
-      score += 2;
-    }
-
-    // players are awarded +1 point for every vote received by their phony definition
-    if(word.author.id !== player.id){ // ensures that word authors do not score for votes on the correct definition
-      playersdef.votes.forEach(voter => {
-        score += 1;
-      })
-    }
-  });
-  return score;
-}
-
 
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
@@ -259,44 +212,17 @@ const Game = withRouter(({ history }) => {
             <Grid item container>
               {/* players */}
               {ordered_players.map((player_mapped, idx) => {
-
-                const score = getScore(session, player);
-
                 return (
                   <Grid item xs={playeritemwidth} key={`player.info.${player_mapped.id}`}>
-                  {/* <Grid item xs={1} key={`player.info.${player.id}`}> */}
-                    <Box p={1}>
-                      <Paper elevation={0} style={{backgroundColor: player_mapped.color}}>
-                        <Box p={1}>
-                          <Typography variant='body2'>
-                            {`${(score > 0) ? '+' : ''}${score} : `}
-                            
-                            {(!editing_username || (player.id !== player_mapped.id)) && 
-                            <span
-                              onClick={(e) => {
-                                setEditingUsername(true);
-                              }}  
-                            >
-                              {player_mapped.id}
-                            </span>
-                            }
-
-                            {editing_username &&
-                            <TextField
-                              size='small'
-                              onBlur={(e) => {
-                                setEditingUsername(false);
-                                let to = new Player(e.target.value);
-                                to.setColor(player_mapped.color);
-                                uji('modify_player', {id: sessionid, from: player_mapped, to: to});
-                                setPlayer(to);
-                              }}
-                              />
-                            }
-                          </Typography> 
-                        </Box>
-                      </Paper>
-                    </Box>
+                    <PlayerCard 
+                      session={session}
+                      player={player_mapped}
+                      editable={player_mapped.id === player.id}
+                      onPlayerChange={(from: Player, to: Player) => {
+                        uji('modify_player', {id: sessionid, from: from, to: to});
+                        setPlayer(to);
+                      }}
+                    />
                   </Grid>
                 );
               })}
