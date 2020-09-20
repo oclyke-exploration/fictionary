@@ -36,17 +36,17 @@ app.use(cors());
 app.use(express.json());
 
 var options = {
-  key: fs.readFileSync('./file.pem'),
-  cert: fs.readFileSync('./file.crt')
+  key: fs.readFileSync('/etc/ssl/deluge.key'),
+  cert: fs.readFileSync('/etc/ssl/private/deluge.pem')
 };
-var serverPort = 443;
+var serverPort = secrets.SocketPort;
 
 var server = https.createServer(options, app);
 var io = require('socket.io')(server);
 
-// app.get('/', function(req, res) {
-//   res.sendFile(__dirname + '/public/index.html');
-// });
+app.get('/', function(req, res) {
+  res.sendStatus(200);
+});
 
 io.on('connection', (socket) => {
 
