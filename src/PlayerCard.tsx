@@ -46,9 +46,11 @@ const getScore = (session: Session, player: Player) => {
 
     // players are awarded +1 point for every vote received by their phony definition
     if(word.author.id !== player.id){ // ensures that word authors do not score for votes on the correct definition
-      playersdef.votes.forEach(voter => {
-        score += 1;
-      })
+      if(typeof(playersdef) !== 'undefined'){
+        playersdef.votes.forEach(voter => {
+          score += 1;
+        });
+      }
     }
   });
   return score;
