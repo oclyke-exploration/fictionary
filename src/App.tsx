@@ -75,6 +75,54 @@ const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
 }
 
+const getScore = (session: Session, player: Player) => {
+  // compute the player's score
+  let score = 0;
+  session.words.forEach(word => {
+
+    let votes = 0;
+    word.definitions.forEach(def => { votes += def.votes.length; });
+    const voted = (votes === (word.voters.length));
+    if(!voted){
+      return; // do not count words that have not been fully voted
+    }
+
+    let realdefs = word.definitions.filter(def => def.author.id === word.author.id);
+    if(realdefs.length !== 1){
+      throw 'there should always be one and only one real definition!';
+    }
+    let realdef = realdefs[0];
+
+    let playersdefs = word.definitions.filter(def => def.author.id === player.id);
+    if(playersdefs.length !== 1){
+      throw 'each player should have one and only one definition'
+    }
+    const playersdef = playersdefs[0];
+
+    // if the real definition is not selected at all the word author gets as many points as there were voters
+    if(word.author.id === player.id){
+      if(realdef.votes.length === 0){
+        score += word.voters.length;
+      }
+    }
+
+    // if the voter guesses the correct definition they are awarded +2 points
+    // (word authors cannot vote and so cannot earn points this way)
+    if(realdef.votes.map(voter => voter.id).includes(player.id)){
+      score += 2;
+    }
+
+    // players are awarded +1 point for every vote received by their phony definition
+    if(word.author.id !== player.id){ // ensures that word authors do not score for votes on the correct definition
+      playersdef.votes.forEach(voter => {
+        score += 1;
+      })
+    }
+  });
+  return score;
+}
+
+
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
 
@@ -137,6 +185,9 @@ const Game = withRouter(({ history }) => {
     playeritemwidth = 6;
   }
 
+  // make an ordered players list
+  const ordered_players = [...session.players.filter(p => p.id === player.id), ...session.players.filter(p => p.id !== player.id).sort((a, b) => getScore(session, b) - getScore(session, a))];
+
 
   // an effect that runs on first render
   useEffect(() => {
@@ -191,51 +242,9 @@ const Game = withRouter(({ history }) => {
           <Box p={1}>
             <Grid item container>
               {/* players */}
-              {session.players.map(player => {
+              {ordered_players.map(player => {
 
-                // compute the player's score
-                let score = 0;
-                session.words.forEach(word => {
-
-                  let votes = 0;
-                  word.definitions.forEach(def => { votes += def.votes.length; });
-                  const voted = (votes === (word.voters.length));
-                  if(!voted){
-                    return; // do not count words that have not been fully voted
-                  }
-
-                  let realdefs = word.definitions.filter(def => def.author.id === word.author.id);
-                  if(realdefs.length !== 1){
-                    throw 'there should always be one and only one real definition!';
-                  }
-                  let realdef = realdefs[0];
-
-                  let playersdefs = word.definitions.filter(def => def.author.id === player.id);
-                  if(playersdefs.length !== 1){
-                    throw 'each player should have one and only one definition'
-                  }
-                  const playersdef = playersdefs[0];
-
-                  // if the real definition is not selected at all the word author gets as many points as there were voters
-                  if(word.author.id === player.id){
-                    if(realdef.votes.length === 0){
-                      score += word.voters.length;
-                    }
-                  }
-
-                  // if the voter guesses the correct definition they are awarded +2 points
-                  // (word authors cannot vote and so cannot earn points this way)
-                  if(realdef.votes.map(voter => voter.id).includes(player.id)){
-                    score += 2;
-                  }
-
-                  // players are awarded +1 point for every vote received by their phony definition
-                  if(word.author.id !== player.id){ // ensures that word authors do not score for votes on the correct definition
-                    playersdef.votes.forEach(voter => {
-                      score += 1;
-                    })
-                  }
-                });
+                const score = getScore(session, player);
 
                 return (
                   <Grid item xs={playeritemwidth} key={`player.info.${player.id}`}>
