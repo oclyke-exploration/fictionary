@@ -142,7 +142,7 @@ var server = app.listen(port, async () => {
     ujm('join', async (event, session) => {
       const id = session.id;
       const player = Elements.Player.fromObj(session.players[0]);
-      var res = false;
+      var res = {status: false, num_players: 0};
       try {
         if(typeof(session_clients[id]) === 'undefined'){
           session_clients[id] = [];
@@ -150,9 +150,9 @@ var server = app.listen(port, async () => {
         }
         session_clients[id].push({socket: socket, playerid: player.id});
         socket.join(id);
-        res = true;
       } catch (e) {
         console.warn(e);
+        return res;
       }
       try {
         const update = {
@@ -164,6 +164,11 @@ var server = app.listen(port, async () => {
       } catch (e) {
         console.warn(e);
       }
+      await requestReadSession(id).then(session =>{
+        res.num_players = session.players.length;
+        res.status = true;
+      })
+      .catch(e => console.warn(e));
       push(id);
       return res;
     });
@@ -174,6 +179,37 @@ var server = app.listen(port, async () => {
       console.log('requesting session info for ', id);
       await requestReadSession(id).then((session) => {
         res = session;
+      })
+      .catch(e => console.warn(e));
+      return res;
+    });
+
+    ujm('modify_player', async (event, req) => {
+      const id = req.id;
+      let from = Elements.Player.fromObj(req.from);
+      let to = Elements.Player.fromObj(req.to);
+      var res = false;
+      await requestReadSession(id).then( async (session) => {
+        const pull_update = {
+          $pull: {
+            players: {
+              id: from.id,
+            },
+          },
+        }
+        const push_update = {
+          $push: {
+            players: to,
+          }
+        }
+        await requestUpdateSession(id, pull_update).then( async () => {
+          await requestUpdateSession(id, push_update).then( async () => {
+            res = true;
+            push(id);
+          })
+          .catch(e => console.warn(e));
+        })
+        .catch(e => console.warn(e));
       })
       .catch(e => console.warn(e));
       return res;

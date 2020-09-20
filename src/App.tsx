@@ -30,6 +30,8 @@ import ChatRoundedIcon from '@material-ui/icons/Chat';
 import LaunchRoundedIcon from '@material-ui/icons/Launch';
 import EmailRoundedIcon from '@material-ui/icons/EmailRounded';
 
+import { GithubPicker } from 'react-color'
+
 import SessionSelector from './SessionSelector';
 import WordProposer from './WordProposer';
 import WordCard from './WordCard';
@@ -37,6 +39,8 @@ import WordCard from './WordCard';
 import {Player, Definition, Word, Session} from './Elements';
 
 var Sentencer = require('sentencer');
+
+const palette = ['#EB9694', '#FAD0C3', '#FEF3BD', '#C1E1C5', '#BEDADC', '#C4DEF6', '#BED3F3', '#D4C4FB'];
 
 var clipboard = new ClipboardJS('.copybtn');
 clipboard.on('success', function(e) {
@@ -188,14 +192,30 @@ const Game = withRouter(({ history }) => {
   // make an ordered players list
   const ordered_players = [...session.players.filter(p => p.id === player.id), ...session.players.filter(p => p.id !== player.id).sort((a, b) => getScore(session, b) - getScore(session, a))];
 
+  console.log(session.players);
 
   // an effect that runs on first render
   useEffect(() => {
     console.log('game page');
     ensureSocket();
 
-    uje('join', (event, msg) => {
+    uje('join', (event, msg: any) => {
+      const idy = msg.res.num_players - 1;
+      const idx = palette.length - idy - 1;
+      const new_color = palette[((idx > 3) ? (2*(idx-4))+1 : 2*idx ) % palette.length];
+
+      // set the 'to' color of this user
+      let to = new Player(player.id);
+      to.setColor(new_color);
+
+      console.log('updated players color: ', to);
+
+      uji('modify_player', {id: sessionid, from: player, to: to});
     });
+
+    uje('modify_player', (event, msg) => {
+
+    })
 
     uje('session', (event, msg) => {
       setSession(Session.fromUnknown(msg.res));
@@ -250,10 +270,10 @@ const Game = withRouter(({ history }) => {
                   <Grid item xs={playeritemwidth} key={`player.info.${player.id}`}>
                   {/* <Grid item xs={1} key={`player.info.${player.id}`}> */}
                     <Box p={1}>
-                      <Paper elevation={0} style={{backgroundColor: 'whitesmoke'}}>
+                      <Paper elevation={0} style={{backgroundColor: player.color}}>
                         <Box p={1}>
                           <Typography variant='body2'>
-                            {player.id}{' '}{score}
+                            {`${(score > 0) ? '+' : ''}${score} : ${player.id}`}
                           </Typography> 
                         </Box>
                       </Paper>

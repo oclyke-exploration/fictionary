@@ -6,12 +6,17 @@ function hasOwnProperty<X extends {}, Y extends PropertyKey>(obj: X, prop: Y): o
 
 class Player {
   id: string
+  color: string
   constructor (id: string) {
     this.id = id;
+    this.color = 'whitesmoke';
   }
 
   static fromObj (obj: Player) {
     let player = new Player(obj.id);
+    if(typeof(obj.color) === 'string'){
+      player.setColor(obj.color);
+    }
     return player;
   }
 
@@ -31,6 +36,11 @@ class Player {
 
   hasPosed (word: Word) {
     return (word.definitions.filter(def => this.equals(def.author)).length !== 0)
+  }
+
+  setColor (color: string) {
+    this.color = color;
+    return this;
   }
 }
 
