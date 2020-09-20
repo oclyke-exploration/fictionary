@@ -1,5 +1,13 @@
 # fictionary
 
+notes to myself:
+to start server on vps:
+git clone this repo -> fictionary
+cd fictionary
+npm install
+npm run-script start # build the compiled typescript files better than when calling ./server/build.sh directly...)
+node server/app.js
+
 # using the server
 * install your dependencies (```npm install``` or something like that)
 * use the typescript compiler to generate ```server/Elements.js``` w/ ```tsc -outDir server src/Elements.tsx```
