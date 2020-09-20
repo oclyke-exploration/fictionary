@@ -137,6 +137,7 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
                     
               {canvote && !voted && 
                 <Radio
+                  style={{color: word.author.color}}
                   checked={selected === idx}
                   onChange={(e) => {
                     if(selected === idx){
@@ -157,7 +158,7 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
           </Box>
         </CardContent>
 
-        <CardActions>
+        <CardActions style={{backgroundColor: word.author.color}}>
 
         {canpose && <>
           <InputBase

@@ -98,8 +98,8 @@ const getScore = (session: Session, player: Player) => {
     let realdef = realdefs[0];
 
     let playersdefs = word.definitions.filter(def => def.author.id === player.id);
-    if(playersdefs.length !== 1){
-      throw 'each player should have one and only one definition'
+    if(playersdefs.length > 1){
+      throw 'each player should have at most one definition'
     }
     const playersdef = playersdefs[0];
 
@@ -192,8 +192,6 @@ const Game = withRouter(({ history }) => {
   // make an ordered players list
   const ordered_players = [...session.players.filter(p => p.id === player.id), ...session.players.filter(p => p.id !== player.id).sort((a, b) => getScore(session, b) - getScore(session, a))];
 
-  console.log(session.players);
-
   // an effect that runs on first render
   useEffect(() => {
     console.log('game page');
@@ -208,9 +206,8 @@ const Game = withRouter(({ history }) => {
       let to = new Player(player.id);
       to.setColor(new_color);
 
-      console.log('updated players color: ', to);
-
       uji('modify_player', {id: sessionid, from: player, to: to});
+      setPlayer(to);
     });
 
     uje('modify_player', (event, msg) => {
