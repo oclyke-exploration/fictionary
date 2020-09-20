@@ -19,6 +19,20 @@ to start server on vps:
 ```yarn start``` (the start script has been modified to also build server files, but the server must be started manually)
 
 
+### example secrets file
+``` :tsx
+
+const MongodbCredentials = {
+  username: 'username',
+  password: 'password',
+}
+
+const SocketPort = number;
+
+export {MongodbCredentials, SocketPort};
+
+```
+
 # original create-react-app documentation
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
