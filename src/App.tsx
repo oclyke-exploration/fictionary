@@ -25,6 +25,7 @@ import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import TextField from '@material-ui/core/TextField';
 
 import ChatRoundedIcon from '@material-ui/icons/Chat';
 import LaunchRoundedIcon from '@material-ui/icons/Launch';
@@ -170,10 +171,8 @@ const Game = withRouter(({ history }) => {
   // });
   // const [session, setSession] = useState<Session>(test_session.addPlayer(player));
 
-  const [proposedDefinition, setProposedDefinition] = useState<Definition>(new Definition('', player));
-  const [proposedWord, setProposedWord] = useState<Word>(new Word('', proposedDefinition));
 
-  const [fake_defs, setFakeDefs] = useState<Definition[]>([]);
+  const [editing_username, setEditingUsername] = useState<boolean>(false);
 
   const shareurl = `https://games.echoictech.com/fictionary/${sessionid}`;
 
@@ -259,18 +258,41 @@ const Game = withRouter(({ history }) => {
           <Box p={1}>
             <Grid item container>
               {/* players */}
-              {ordered_players.map(player => {
+              {ordered_players.map((player_mapped, idx) => {
 
                 const score = getScore(session, player);
 
                 return (
-                  <Grid item xs={playeritemwidth} key={`player.info.${player.id}`}>
+                  <Grid item xs={playeritemwidth} key={`player.info.${player_mapped.id}`}>
                   {/* <Grid item xs={1} key={`player.info.${player.id}`}> */}
                     <Box p={1}>
-                      <Paper elevation={0} style={{backgroundColor: player.color}}>
+                      <Paper elevation={0} style={{backgroundColor: player_mapped.color}}>
                         <Box p={1}>
                           <Typography variant='body2'>
-                            {`${(score > 0) ? '+' : ''}${score} : ${player.id}`}
+                            {`${(score > 0) ? '+' : ''}${score} : `}
+                            
+                            {(!editing_username || (player.id !== player_mapped.id)) && 
+                            <span
+                              onClick={(e) => {
+                                setEditingUsername(true);
+                              }}  
+                            >
+                              {player_mapped.id}
+                            </span>
+                            }
+
+                            {editing_username &&
+                            <TextField
+                              size='small'
+                              onBlur={(e) => {
+                                setEditingUsername(false);
+                                let to = new Player(e.target.value);
+                                to.setColor(player_mapped.color);
+                                uji('modify_player', {id: sessionid, from: player_mapped, to: to});
+                                setPlayer(to);
+                              }}
+                              />
+                            }
                           </Typography> 
                         </Box>
                       </Paper>
