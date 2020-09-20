@@ -14,12 +14,21 @@ import {
 } from "react-router-dom";
 import socketIOClient from 'socket.io-client';
 
+import ClipboardJS from 'clipboard';
+
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import Container from '@material-ui/core/Container';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+
+import ChatRoundedIcon from '@material-ui/icons/Chat';
+import LaunchRoundedIcon from '@material-ui/icons/Launch';
+import EmailRoundedIcon from '@material-ui/icons/EmailRounded';
 
 import SessionSelector from './SessionSelector';
 import WordProposer from './WordProposer';
@@ -28,6 +37,14 @@ import WordCard from './WordCard';
 import {Player, Definition, Word, Session} from './Elements';
 
 var Sentencer = require('sentencer');
+
+var clipboard = new ClipboardJS('.copybtn');
+clipboard.on('success', function(e) {
+    console.log(e);
+});
+clipboard.on('error', function(e) {
+    console.log(e);
+});
 
 const port = 4567;
 let socket: SocketIOClient.Socket;
@@ -106,6 +123,8 @@ const Game = withRouter(({ history }) => {
 
   const [fake_defs, setFakeDefs] = useState<Definition[]>([]);
 
+  const shareurl = `https://games.echoictech.com/fictionary/${sessionid}`;
+
   // an effect that runs on first render
   useEffect(() => {
     console.log('game page');
@@ -131,6 +150,28 @@ const Game = withRouter(({ history }) => {
 
       {/* <Grid container direction='column'> */}
       <Box display='flex' flexDirection='column' justifyContent='space-between' style={{width: '100%', height: '100%'}}>
+
+        {/* header */}
+        <Container>
+          <Box>
+            <Typography variant='h1' align='center' style={{fontSize: 48}}>
+              <Link href='/'>
+                fictionary
+              </Link>
+
+              <Tooltip title='copy game link'>
+                <IconButton
+                  className='copybtn'
+                  style={{margin: 12}}
+                  color='primary'
+                  data-clipboard-text={shareurl}
+                >
+                  <LaunchRoundedIcon />
+                </IconButton>
+              </Tooltip>
+            </Typography>
+          </Box>
+        </Container>
 
         {/* players */}
         <Box>
