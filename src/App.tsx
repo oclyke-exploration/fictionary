@@ -83,6 +83,9 @@ const suggestId = () => {
 
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
+  let rootroute = useRouteMatch();
+
+  console.log(rootroute);
 
   const [gohome, setGohome] = useState(false);
   
@@ -127,7 +130,7 @@ const Game = withRouter(({ history }) => {
 
   const [editing_username, setEditingUsername] = useState<boolean>(false);
 
-  const shareurl = `https://games.echoictech.com/fictionary/${sessionid}`;
+  const shareurl = `https://games.echoictech.com${rootroute.url}`;
 
   let playeritemwidth: 2 | 3 | 4 | 6 = 2;
   const playeritemdivision = 12/session.players.length;
@@ -354,7 +357,7 @@ const Start = (props: any) => {
         <Grid item xs={1}  sm={2}  md={3}/>
       </Grid>
 
-      {start && <Redirect to={`/fictionary/${sessionid}`}/>}
+      {start && <Redirect to={`/fictionary/game/${sessionid}`}/>}
     </>
   );
 }
@@ -363,8 +366,8 @@ const App = () => {
   return (
     <Router>
       <Switch>
-        <Route path='/fictionary/' component={Games}/>
-        <Route component={Start}/>
+        <Route path='/fictionary/game' component={Games}/>
+        <Route path='/fictionary' component={Start}/>
       </Switch>
     </Router>
   );

@@ -1,5 +1,6 @@
 {
-  "name": "fictionary-ui",
+  "name": "fictionary",
+  "homepage": "/fictionary",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
