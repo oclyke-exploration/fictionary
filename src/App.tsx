@@ -154,6 +154,11 @@ const Game = withRouter(({ history }) => {
     console.log('game page');
     ensureSocket();
 
+    window.addEventListener('beforeunload', (e) => {
+      console.log('unloading window - disconnecting user');
+      socket.disconnect();
+    })
+
     uje('join', (event, msg: any) => {
       const idy = msg.res.num_players - 1;
       const idx = palette.length - idy - 1;
@@ -191,24 +196,24 @@ const Game = withRouter(({ history }) => {
 
         {/* header */}
         <Container>
-          <Box>
-            <Typography variant='h1' align='center' style={{fontSize: 48}}>
-              <Link href='/'>
-                fictionary
-              </Link>
-
-              <Tooltip title='copy game link'>
-                <IconButton
-                  className='copybtn'
-                  style={{margin: 12}}
-                  color='primary'
-                  data-clipboard-text={shareurl}
-                >
-                  <LaunchRoundedIcon />
-                </IconButton>
-              </Tooltip>
-            </Typography>
-          </Box>
+          <Typography variant='h1' align='center' style={{fontSize: 48}}>
+            <Link href='/fictionary'>
+              fictionary
+            </Link>
+            <span style={{fontSize: 16, marginLeft: '24px', position: 'relative', top: '-8px'}}>
+              {sessionid}
+            </span>
+            <Tooltip title='copy game link'>
+              <IconButton
+                className='copybtn'
+                style={{margin: 12}}
+                color='primary'
+                data-clipboard-text={shareurl}
+              >
+                <LaunchRoundedIcon />
+              </IconButton>
+            </Tooltip>
+          </Typography>
         </Container>
 
         {/* players */}
