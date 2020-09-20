@@ -2,13 +2,13 @@
 
 notes to myself:
 to start server on vps:
-git clone this repo -> fictionary
-cd fictionary
-touch src/secrets.tsx
-nano src/secretes.tsx # paste the secrets here
-npm install
-npm run-script start # build the compiled typescript files better than when calling ./server/build.sh directly...)
-node server/app.js
+* git clone this repo -> fictionary
+* cd fictionary
+* touch src/secrets.tsx
+* nano src/secretes.tsx # paste the secrets here
+* npm install
+* npm run-script start # build the compiled typescript files better than when calling ./server/build.sh directly...)
+* node server/app.js
 
 # using the server
 * install your dependencies (```npm install``` or something like that)
