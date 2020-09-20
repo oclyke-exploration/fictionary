@@ -75,8 +75,9 @@ const ensureSocket = () => {
   if((typeof(socket) !== 'undefined') && (socket.connected)){
     return;
   }
-  socket = socketIOClient(`http://localhost:${SocketPort}`);
-  // socket = socketIOClient(`https://games.oclyke.dev:${port}`);
+  socket = socketIOClient(`https://localhost:${443}`);
+  // socket = socketIOClient(`https://localhost:${SocketPort}`);
+  // socket = socketIOClient(`https://games.oclyke.dev:${SocketPort}`);
   console.log('socket created!', socket);
 }
 
