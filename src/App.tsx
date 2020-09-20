@@ -15,11 +15,15 @@ import {
 import socketIOClient from 'socket.io-client';
 
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
+import Box from '@material-ui/core/Box';
+import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 
 import SessionSelector from './SessionSelector';
+import WordProposer from './WordProposer';
+import WordCard from './WordCard';
 
 import {Player, Definition, Word, Session} from './Elements';
 
@@ -54,38 +58,6 @@ const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
 }
 
-const shuffle = (array: any[]) => {
-  var m = array.length, t, i;
-
-  // While there remain elements to shuffle…
-  while (m) {
-
-    // Pick a remaining element…
-    i = Math.floor(Math.random() * m--);
-
-    // And swap it with the current element.
-    t = array[m];
-    array[m] = array[i];
-    array[i] = t;
-  }
-
-  return array;
-}
-
-
-const WordCard = (props: any) => {
-  return (
-    <>
-      {props.word.value}
-    </>
-  );
-}
-
-
-
-
-
-
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
 
@@ -94,8 +66,43 @@ const Game = withRouter(({ history }) => {
   const [player, setPlayer] = useState<Player>(new Player(suggestId()));
   const [session, setSession] = useState<Session>(new Session(sessionid).addPlayer(player));
 
+  // const word = new Word('doggy', new Definition('a quadruped', new Player('robot')));
+  // const canvote = (player.isVoter(word) && !word.hasVoteBy(player));
+  // console.log(canvote);
+
+  // const [player, setPlayer] = useState<Player>(new Player('robot'));
+  // let test_session = new Session('test-session');
+  // const test_words = [
+  //   new Word('bar', new Definition('unit of pressure of one million dynes per square centimeter', new Player('robot'))),
+  //   new Word('kit', new Definition('a small pocket violin', new Player('insect'))),
+  //   new Word('quena', new Definition('vertical bamboo flute used in the Andes', new Player('robot'))),
+  //   new Word('jailage', new Definition('fee paid to jailer', new Player('mammal'))).addDefinition(new Definition('wastewater handling method', new Player('insect'))),
+  //   new Word('youngstock', new Definition('young domestic animals', new Player('robot'))),
+  //   new Word('kermes', new Definition('brilliant red colour; a red dye derived from insects', new Player('insect'))),
+  //   new Word('ixia', new Definition('South African beautiful flowering plant', new Player('mammal'))),
+  //   new Word('factitious', new Definition('produced by humans or artificial forces', new Player('mammal'))),
+  //   new Word('metalliferous', new Definition('bearing metal', new Player('mammal'))),
+  //   new Word('cnemis', new Definition('shin bone', new Player('insect'))),
+  //   new Word('bullary', new Definition('collection of papal bulls', new Player('mammal'))),
+  //   new Word('nasute', new Definition('keen-scented; critically discriminating; having a big nose', new Player('robot'))),
+  //   new Word('wordish', new Definition('verbose', new Player('robot'))),
+  //   new Word('xylopyrography', new Definition('engraving designs on wood with hot poker', new Player('mammal'))),
+  //   new Word('warrener', new Definition('keeper of a warren of rabbits', new Player('mammal'))),
+  //   new Word('donné', new Definition('basic assumption or axiom; basic principle of an artwork', new Player('robot'))),
+  //   new Word('limax', new Definition('slug', new Player('insect'))),
+  //   new Word('dyphone', new Definition('double lute with fifty strings', new Player('robot'))),
+  //   new Word('yakhdan', new Definition('box used for carrying ice on back of pack animal', new Player('insect'))),
+  //   new Word('ethology', new Definition('study of natural or biological character', new Player('robot'))),
+  // ]
+  // test_words.forEach(word => {
+  //   if(word){
+  //     test_session.addWord(word);
+  //   }
+  // });
+  // const [session, setSession] = useState<Session>(test_session.addPlayer(player));
+
   const [proposedDefinition, setProposedDefinition] = useState<Definition>(new Definition('', player));
-  const [proposedWord, setProposedWord] = useState<Word>(new Word('', proposedDefinition, player));
+  const [proposedWord, setProposedWord] = useState<Word>(new Word('', proposedDefinition));
 
   const [fake_defs, setFakeDefs] = useState<Definition[]>([]);
 
@@ -120,136 +127,86 @@ const Game = withRouter(({ history }) => {
   }), [])
 
   return (
-    <div>
-      <RouterLink to={`/`}>
-        Fictionary
-      </RouterLink>
+    <>
 
-      <div>
-        player: {player.id}
-      </div>
+      {/* <Grid container direction='column'> */}
+      <Box display='flex' flexDirection='column' justifyContent='space-between' style={{width: '100%', height: '100%'}}>
 
-      <div>
-        <div>
-          propose word
-        </div>
-        <div>
-          <input
-            value={proposedWord.value}
-            placeholder='word'
-            onChange={(e) => {
-              setProposedWord(new Word(e.target.value, proposedDefinition, player));
-            }}
-            />
-          <input
-            value={proposedDefinition.value}
-            placeholder='definition'
-            onChange={(e) => {
-              const new_definition = new Definition(e.target.value, player);
-              setProposedDefinition(new_definition);
-              setProposedWord(new Word(proposedWord.value, new_definition, player));
-            }}
-            />
-          <button
-            onClick={(e) => {
-              console.log(proposedWord);
-              uji('add_word', {id: sessionid, word: proposedWord});
-              const new_definition = new Definition('', player);
-              setProposedDefinition(new_definition);
-              setProposedWord(new Word('', new_definition, player));
-            }}
-          >
-            submit
-          </button>
-        </div>
-      </div>
-
-      {/* words */}
-      <div>
-      {(typeof(session.words) !== 'undefined') && session.words.map((word, idx) => {
-        const canfake = ((word.author.id !== player.id) && (word.definitions.filter(def => def.author.id === player.id).length === 0) && (word.voters.filter(voter => voter.id === player.id).length !== 0));
-        const faked = (word.definitions.length === word.voters.length + 1);
-        var shuffled_definitions = shuffle(word.definitions);
+        {/* players */}
+        <Box>
+          <Box p={1}>
+            <Grid item container>
+              {/* players */}
+              {session.players.map(player => {
+                return (
+                  <Grid item xs={3} key={`player.info.${player.id}`}>
+                  {/* <Grid item xs={1} key={`player.info.${player.id}`}> */}
+                    <Box p={1}>
+                      <Paper elevation={0} style={{backgroundColor: 'whitesmoke'}}>
+                        <Box p={1}>
+                          <Typography variant='body2'>
+                            {player.id}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+        </Box>
         
-        var already_voted = false;
-        word.definitions.forEach((def) => {
-          def.votes.forEach((voter) => {
-            if(voter.id === player.id){
-              already_voted = true;
-            }
-          });
-        });
-        
-        const is_voter = (word.voters.filter(voter => voter.id === player.id).length !== 0);
+        {/* words */}
+        <Box flexGrow={1} style={{overflow: 'auto'}}>
 
-        return (
-          <div key={`word_entry_${idx}`}>
-            <div>word: {word.value}</div>
-            <div>author: {word.author.id}</div>
-            {canfake && 
-              <>
-              <input
-                value={(typeof(fake_defs[idx]) === 'undefined') ? '' : fake_defs[idx].value}
-                placeholder='fake definition'
-                onChange={(e) => {
-                  var new_fake_defs = [...fake_defs];
-                  new_fake_defs[idx] = new Definition(e.target.value, player);
-                  setFakeDefs(new_fake_defs);
+          <Grid item container>
+            <Grid item xs={1} md={2} lg={3} />
+            <Grid item xs={10} md={8} lg={6}>
+
+              <Box display='flex' flexDirection='column'>
+              
+              {session.words.map(word => {
+                return (
+                  <Grid item key={`words.${word.value}`} style={{alignSelf: `flex-${(word.author.id === player.id) ? 'end' : 'start'}`}}>
+                    <WordCard
+                      word={word}
+                      player={player}
+                      onPoseDefinition={(posed: Definition) => {
+                        uji('add_definition', {id: sessionid, word: word, definition: posed});
+                      }}
+                      onVote={(selected) => {
+                        uji('add_vote', {id: sessionid, word: word, definition: selected, voter: player});
+                      }}
+                      />
+                  </Grid>
+                );
+              })}
+
+              </Box>
+
+            </Grid>
+            <Grid item xs={1} md={2} lg={3} />
+          </Grid>
+
+        </Box>
+
+        {/* suggestions */}
+        <Box>
+          <Grid item container>
+            <Grid item xs={1} md={2} lg={3} />
+            <Grid item container xs={10} md={8} lg={6}>
+              <WordProposer
+                onSubmit={(word, def) => {
+                  uji('add_word', {id: sessionid, word: new Word(word, new Definition(def, player))});
                 }}
                 />
-              <button
-                onClick={(e) => {
-                  uji('add_definition', {id: sessionid, word: word, definition: fake_defs[idx]});
-                  var new_fake_defs = [...fake_defs];
-                  new_fake_defs[idx] = new Definition('', player);
-                  setFakeDefs(new_fake_defs);
-                }}
-              >
-                submit
-              </button>
-              </>
-            }
-            {faked && 
-              <div>
-                {shuffled_definitions.map((definition, idx) => {
-                  const owndef = (definition.author.id === player.id);
-                  const canvote = (is_voter && !already_voted && !owndef);
-                  return (
-                    <div key={`fake_def_${idx}`}>
-                      {definition.value}
-                    {canvote &&
-                      <button
-                        onClick={(e) => {
-                          uji('add_vote', {id: sessionid, word: word, definition: definition, voter: player});
-                        }}
-                      >
-                        choose
-                      </button>
-                      }
-                    </div>
-                  );
-                })}
-              </div>
-            }
-          </div>
-        );
-      })}
-      </div>
-
-      <div>
-        <br/>
-        <div>
-          game state
-        </div>
-        <pre>
-          {JSON.stringify(session, null, 2)}
-        </pre>
-      </div>
-
-
-      {gohome && <Redirect to={`/`}/>}
-
-    </div>
+            </Grid>
+            <Grid item xs={1} md={2} lg={3} />
+          </Grid>
+        </Box>
+      </Box>
+    </>
   );
 });
 
