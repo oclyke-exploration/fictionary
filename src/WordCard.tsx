@@ -129,7 +129,7 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
           
 
           <Box display='flex' flexDirection='column'>
-          {shuffled.map((def, idx) => {
+          {shuffled.filter(def => (!canvote || (def.author.id !== player.id))).map((def, idx) => { // this filter prevents players from voting on their own definitions
             const isphony = (word.author.id !== def.author.id);
             console.log(isphony);
             return (
