@@ -1,5 +1,6 @@
 # secrets (you should implement these files yourself!)
 server/secrets.*
+src/secrets.*
 
 # transpiled files (look in the readme for how to generate these)
 server/Elements.js

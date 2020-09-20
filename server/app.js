@@ -1,29 +1,34 @@
-import {MongodbCredentials} from './secrets.mjs';
-const username = MongodbCredentials.username;
-const password = MongodbCredentials.password;
+// import {MongodbCredentials} from './secrets.mjs';
+// const username = MongodbCredentials.username;
+// const password = MongodbCredentials.password;
+
+const secrets = require('./secrets.js');
+const username = secrets.MongodbCredentials.username;
+const password = secrets.MongodbCredentials.password;
+
 
 const defaultdb = 'fictionary'
 
-// const MongoClient = require('mongodb').MongoClient;
-import mongopkg from 'mongodb';
-const {MongoClient} = mongopkg;
+const MongoClient = require('mongodb').MongoClient;
+// import mongopkg from 'mongodb';
+// const {MongoClient} = mongopkg;
 const uri = `mongodb+srv://${username}:${password}@oclyke-sandboc.k8ns8.gcp.mongodb.net/${defaultdb}?retryWrites=true&w=majority`;
 const mongoclient = new MongoClient(uri, { useNewUrlParser: true });
 
 
 
-const port = 4567;
+// const port = 46931;
 
-// const Express = require('express');
-import Express from 'express';
-// var cors = require('cors');
-import cors from 'cors';
+const Express = require('express');
+// import Express from 'express';
+var cors = require('cors');
+// import cors from 'cors';
 var app = Express();
-// const socketIo = require('socket.io');
-import socketIo from 'socket.io';
+const socketIo = require('socket.io');
+// import socketIo from 'socket.io';
 
-// require('./Elements');
-import Elements from './Elements.js';
+const Elements = require('./Elements');
+// import Elements from './Elements.js';
 
 
 var session_clients = {};
@@ -31,7 +36,7 @@ var session_clients = {};
 app.use(cors());
 app.use(Express.json());
 
-var server = app.listen(port, async () => {
+var server = app.listen(secrets.SocketPort, async () => {
   var host = server.address().address;
   var port = server.address().port;
   console.log('listening at http://%s:%s', host, port);

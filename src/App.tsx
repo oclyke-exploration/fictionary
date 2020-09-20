@@ -14,6 +14,8 @@ import {
 } from "react-router-dom";
 import socketIOClient from 'socket.io-client';
 
+import {SocketPort} from './secrets';
+
 import ClipboardJS from 'clipboard';
 
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
@@ -52,7 +54,7 @@ clipboard.on('error', function(e) {
     console.log(e);
 });
 
-const port = 4567;
+
 let socket: SocketIOClient.Socket;
 
 const uji = (event: string, payload: object | string) => { // uniform JSON initiator
@@ -73,7 +75,8 @@ const ensureSocket = () => {
   if((typeof(socket) !== 'undefined') && (socket.connected)){
     return;
   }
-  socket = socketIOClient(`http://localhost:${port}`);
+  socket = socketIOClient(`http://localhost:${SocketPort}`);
+  // socket = socketIOClient(`https://games.oclyke.dev:${port}`);
   console.log('socket created!', socket);
 }
 
@@ -84,8 +87,6 @@ const suggestId = () => {
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
   let rootroute = useRouteMatch();
-
-  console.log(rootroute);
 
   const [gohome, setGohome] = useState(false);
   
@@ -130,7 +131,7 @@ const Game = withRouter(({ history }) => {
 
   const [editing_username, setEditingUsername] = useState<boolean>(false);
 
-  const shareurl = `https://games.echoictech.com${rootroute.url}`;
+  const shareurl = `https://games.oclyke.dev${rootroute.url}`;
 
   let playeritemwidth: 2 | 3 | 4 | 6 = 2;
   const playeritemdivision = 12/session.players.length;
@@ -347,8 +348,8 @@ const Start = (props: any) => {
             </Grid>
             <Grid item>
               <Typography variant='subtitle2' align='center'>
-                <Link href='https://echoictech.com' target='_blank' rel='noreferrer'>
-                  echoic tech llc
+                <Link href='https://oclyke.dev' target='_blank' rel='noreferrer'>
+                  oclyke
                 </Link>
               </Typography>
             </Grid>
@@ -357,7 +358,7 @@ const Start = (props: any) => {
         <Grid item xs={1}  sm={2}  md={3}/>
       </Grid>
 
-      {start && <Redirect to={`/fictionary/game/${sessionid}`}/>}
+      {start && <Redirect to={`/fictionary/session/${sessionid}`}/>}
     </>
   );
 }
@@ -366,7 +367,7 @@ const App = () => {
   return (
     <Router>
       <Switch>
-        <Route path='/fictionary/game' component={Games}/>
+        <Route path='/fictionary/session' component={Games}/>
         <Route path='/fictionary' component={Start}/>
       </Switch>
     </Router>
