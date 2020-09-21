@@ -381,7 +381,7 @@ const Start = (props: any) => {
               /'fikSHə,nerē/ {bull} <i>noun</i>
             </Typography>
             <Typography>
-              a game of camoflage, misdirection, and astonishment in which players guess the true definition of obscure words
+              a game of camouflage, misdirection, and astonishment in which players guess the true definition of obscure words
             </Typography>
             <Divider style={{marginTop: '8px'}}/>
             <Typography color='textSecondary' style={{fontSize: 24, marginTop: '8px'}}>
