@@ -28,10 +28,16 @@ import Link from '@material-ui/core/Link';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import TextField from '@material-ui/core/TextField';
+import Divider from '@material-ui/core/Divider';
+import Radio, { RadioProps } from '@material-ui/core/Radio';
 
 import ChatRoundedIcon from '@material-ui/icons/Chat';
 import LaunchRoundedIcon from '@material-ui/icons/Launch';
 import EmailRoundedIcon from '@material-ui/icons/EmailRounded';
+import LoopRoundedIcon from '@material-ui/icons/LoopRounded';
+import AddCircleOutlineRoundedIcon from '@material-ui/icons/AddCircleOutlineRounded';
+import ArrowForwardRoundedIcon from '@material-ui/icons/ArrowForwardRounded';
+import SendRoundedIcon from '@material-ui/icons/SendRounded';
 
 import { GithubPicker } from 'react-color'
 
@@ -83,6 +89,26 @@ const ensureSocket = () => {
 
 const suggestId = () => {
   return Sentencer.make('{{ adjective }}-{{ noun }}');
+}
+
+const useStyles = makeStyles({
+  bullet: {
+    display: 'inline-block',
+    margin: '0 2px',
+    transform: 'scale(0.8)',
+  },
+});
+
+const Sluicebox = (props: {children: any}) => {
+  return (
+    <Grid container>
+      <Grid item xs={1}  sm={2}  md={3}/>
+      <Grid item xs={10} sm={8}  md={6}>
+        {props.children}
+      </Grid>
+      <Grid item xs={1}  sm={2}  md={3}/>
+    </Grid>
+  );
 }
 
 const Game = withRouter(({ history }) => {
@@ -196,7 +222,7 @@ const Game = withRouter(({ history }) => {
 
         {/* header */}
         <Container>
-          <Typography variant='h1' align='center' style={{fontSize: 48}}>
+          <Typography variant='h1' align='center' style={{fontSize: 36}}>
             <Link href='/fictionary'>
               fictionary
             </Link>
@@ -243,9 +269,7 @@ const Game = withRouter(({ history }) => {
         {/* words */}
         <Box flexGrow={1} style={{overflow: 'auto'}}>
 
-          <Grid item container>
-            <Grid item xs={1} md={2} lg={3} />
-            <Grid item xs={10} md={8} lg={6}>
+          <Sluicebox>
 
               <Box display='flex' flexDirection='column'>
               
@@ -268,10 +292,7 @@ const Game = withRouter(({ history }) => {
 
               </Box>
 
-            </Grid>
-            <Grid item xs={1} md={2} lg={3} />
-          </Grid>
-
+          </Sluicebox>
         </Box>
 
         {/* suggestions */}
@@ -309,6 +330,9 @@ const Start = (props: any) => {
 
   const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
+  const classes = useStyles();
+  const bull = <span className={classes.bullet}>•</span>;
+
   // an effect that runs on first render
   useEffect(() => {
     console.log('start page');
@@ -324,16 +348,14 @@ const Start = (props: any) => {
 
   return (
     <>
-      <Grid container>
-        <Grid item xs={1}  sm={2}  md={3}/>
-        <Grid item xs={10} sm={8}  md={6}>
-          <Grid item container direction='column'>
-            <Grid item>
-              <Typography variant='h1' align='center' style={{fontSize: 48}}>
-                fictionary
-              </Typography>
-            </Grid>
-            <Grid item>
+      <Box display='flex' flexDirection='column' justifyContent='space-between' style={{width: '100%', height: '100%'}}>
+        {/* <Grid item container direction='column'> */}
+        <Box>
+          <Sluicebox>
+            <Typography variant='h1' align='center' style={{fontSize: 36, marginTop: '12px'}}>
+              fictionary
+            </Typography>
+            <Box style={{marginTop: '16px'}}>
               <SessionSelector
                 id={sessionid}
                 join={idactive}
@@ -351,18 +373,129 @@ const Start = (props: any) => {
                   setStart(true);
                 }}
               />
-            </Grid>
-            <Grid item>
-              <Typography variant='subtitle2' align='center'>
-                <Link href='https://oclyke.dev' target='_blank' rel='noreferrer'>
-                  oclyke
-                </Link>
-              </Typography>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item xs={1}  sm={2}  md={3}/>
-      </Grid>
+            </Box>
+            <Typography color='textSecondary' style={{fontSize: 24, marginTop: '16px'}}>
+              fic{bull}tion{bull}ar{bull}y
+            </Typography>
+            <Typography color='textSecondary' style={{fontSize: 14, marginTop: '8px'}}>
+              /'fikSHə,nerē/ {bull} <i>noun</i>
+            </Typography>
+            <Typography>
+              a game of camoflage, misdirection, and astonishment in which players guess the true definition of obscure words
+            </Typography>
+            <Divider style={{marginTop: '8px'}}/>
+            <Typography color='textSecondary' style={{fontSize: 24, marginTop: '8px'}}>
+              how to play
+            </Typography>
+          </Sluicebox>
+        </Box>
+
+
+        <Box flexGrow={1} style={{overflow: 'auto'}}>
+          <Sluicebox>
+            {/* starting a game */}
+            <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
+              <i>setup</i>
+            </Typography>
+            <Typography>
+              <ul style={{marginTop: 0, listStyle: 'none'}}>
+                <li>
+                  <IconButton color='primary' size='small'>
+                    <LoopRoundedIcon />
+                  </IconButton>
+                  <span>create a unique identifier for your group session</span>
+                  <ul style={{listStyle: 'none'}}>
+                    <li>
+                      <IconButton color='primary' size='small'>
+                        <AddCircleOutlineRoundedIcon />
+                      </IconButton>
+                      <span>create a new session</span>
+                    </li>
+                    <li>
+                      <IconButton color='primary' size='small'>
+                        <ArrowForwardRoundedIcon />
+                      </IconButton>
+                      <span>join an existing session</span>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <IconButton color='primary' size='small'>
+                    <LaunchRoundedIcon />
+                  </IconButton>
+                  <span>copy the link to share with friends</span>
+                </li>
+              </ul>
+            </Typography>
+
+            {/* playing the game */}
+            <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
+              <i>gameplay</i>
+            </Typography>
+            <Typography>
+              <ul style={{marginTop: 0, listStyle: 'none'}}>
+                <li>
+                  <IconButton color='primary' size='small'>
+                    <SendRoundedIcon />
+                  </IconButton>
+                  <span>add unique words with their real definitions</span>
+                </li>
+                <li>
+                  <IconButton color='primary' size='small'>
+                    <SendRoundedIcon />
+                  </IconButton>
+                  <span>add made-up definitions to other player's words</span>
+                </li>
+                <li>
+                  {/* radio button */}
+                  <Radio
+                    color='primary'
+                    checked={true}
+                    style={{marginLeft: '-7px', marginRight: '-5px'}}
+                  />
+                  <span>vote on the definitions you think are real</span>
+                </li>
+              </ul>
+            </Typography>
+
+            {/* scoring */}
+            <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
+              <i>scoring as a voter</i>
+            </Typography>
+            <Typography>
+              <ul style={{marginTop: 0, listStyle: 'none'}}>
+                <li>
+                  <span>+1 when your false definition is voted for</span>
+                </li>
+                <li>
+                  <span>+2 when you vote for the true definition</span>
+                </li>
+              </ul>
+            </Typography>
+            <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
+              <i>scoring as the proposer</i>
+            </Typography>
+            <Typography>
+              <ul style={{marginTop: 0, listStyle: 'none'}}>
+                <li>
+                  <span>a point for every voter - if the real definition receives no votes</span>
+                </li>
+              </ul>
+            </Typography>
+          </Sluicebox>
+        </Box>
+
+        <Box>
+          <Sluicebox>
+            <Divider style={{marginTop: '8px'}}/>
+            <Typography variant='subtitle2' align='center' style={{paddingBottom: '8px', paddingTop: '8px'}}>
+              <Link href='https://oclyke.dev' target='_blank' rel='noreferrer'>
+                oclyke
+              </Link>
+            </Typography>
+          </Sluicebox>
+        </Box>
+      </Box>
 
       {start && <Redirect to={`/fictionary/session/${sessionid}`}/>}
     </>
