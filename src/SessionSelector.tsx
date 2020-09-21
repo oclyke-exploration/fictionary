@@ -4,6 +4,7 @@ import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import LoopRoundedIcon from '@material-ui/icons/LoopRounded';
 import AddCircleOutlineRoundedIcon from '@material-ui/icons/AddCircleOutlineRounded';
@@ -38,11 +39,13 @@ const SessionSelector = (props: {id: string, join: boolean, onChange: (event: an
 
   return (
     <Paper component='form' className={classes.root}>
-      <IconButton color='secondary' className={classes.iconButton}
-        onClick={props.onSuggest}
-      >
-        <LoopRoundedIcon />
-      </IconButton>
+      <Tooltip title='suggest new session id'>
+        <IconButton color='secondary' className={classes.iconButton}
+          onClick={props.onSuggest}
+        >
+          <LoopRoundedIcon />
+        </IconButton>
+      </Tooltip>
       <InputBase
         className={classes.input}
         value={props.id}
@@ -50,11 +53,13 @@ const SessionSelector = (props: {id: string, join: boolean, onChange: (event: an
         onChange={props.onChange}
       />
       <Divider className={classes.divider} orientation="vertical" />
-      <IconButton color='primary' className={classes.iconButton}
-        onClick={props.onSubmit}
-      >
-        {(props.join) ? <ArrowForwardRoundedIcon /> : <AddCircleOutlineRoundedIcon /> }
-      </IconButton>
+      <Tooltip title={(props.join) ? `join existing session '${props.id}'` : 'create new session'}>
+        <IconButton color='primary' className={classes.iconButton}
+          onClick={props.onSubmit}
+        >
+          {(props.join) ? <ArrowForwardRoundedIcon /> : <AddCircleOutlineRoundedIcon /> }
+        </IconButton>
+      </Tooltip>
     </Paper>
   );
 }
