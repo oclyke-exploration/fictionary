@@ -19,6 +19,7 @@ const WordProposer = (props: {onSubmit: (word: string, definition: string) => vo
     setWord('');
     setDef('');
   }
+  const disabled = ((word === '') || (def === ''));
 
   return <>
     <Box m={1} style={{width: '100%'}}>
@@ -52,16 +53,18 @@ const WordProposer = (props: {onSubmit: (word: string, definition: string) => vo
               />
           </Box>
           <Box>
-            <Tooltip title='add word'>
-              <IconButton
-                disabled={((word === '') || (def === ''))}
-                color='primary'
-                onClick={(e) => {
-                  propose();
-                }}
-              >
-                <SendRoundedIcon />
-              </IconButton>
+            <Tooltip title={`add word ${(disabled) ? '(enter word + def)' : ''}`}>
+              <span>
+                <IconButton
+                  disabled={disabled}
+                  color='primary'
+                  onClick={(e) => {
+                    propose();
+                  }}
+                >
+                  <SendRoundedIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </Box>
         </Box>

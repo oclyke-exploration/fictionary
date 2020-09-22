@@ -78,8 +78,8 @@ const ensureSocket = () => {
     return;
   }
   // socket = socketIOClient(`https://localhost:${443}`);
-  // socket = socketIOClient(`https://localhost:${SocketPort}`);
-  socket = socketIOClient(`https://games.oclyke.dev:${SocketPort}`);
+  socket = socketIOClient(`https://localhost:${SocketPort}`);
+  // socket = socketIOClient(`https://games.oclyke.dev:${SocketPort}`);
   console.log('socket created!', socket);
 }
 
@@ -108,6 +108,10 @@ const Sluicebox = (props: {children: any}) => {
     </Grid>
   );
 }
+
+/**************************************************************
+                            Game Page
+**************************************************************/
 
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
@@ -185,7 +189,7 @@ const Game = withRouter(({ history }) => {
     <Box display='flex' flexDirection='column' justifyContent='space-between' style={{width: '100%', height: '100%'}}>
 
       {/* header */}
-      <Container>
+      <Container style={{paddingBottom: '0px'}}>
         <Typography variant='h1' align='center' style={{fontSize: 36}}>
           <Link href='/fictionary'>
             fictionary
@@ -197,7 +201,7 @@ const Game = withRouter(({ history }) => {
           <Tooltip title='copy game link'>
             <IconButton
               className='copybtn'
-              style={{margin: 12}}
+              style={{margin: 0}}
               color='primary'
               data-clipboard-text={shareurl}
             >
@@ -208,7 +212,7 @@ const Game = withRouter(({ history }) => {
       </Container>
 
       {/* players */}
-      <Box p={1} style={{paddingTop: 0}}>
+      <Box p={1} style={{paddingTop: 0, paddingBottom: 0}}>
         <Grid item container>
           {ordered_players.map((player_mapped, idx) => { return <>
           <Grid item xs={getPlayerItemWidth(session)} key={`player.info.${player_mapped.id}`}>
