@@ -34,8 +34,7 @@ import LoopRoundedIcon from '@material-ui/icons/LoopRounded';
 import AddCircleOutlineRoundedIcon from '@material-ui/icons/AddCircleOutlineRounded';
 import ArrowForwardRoundedIcon from '@material-ui/icons/ArrowForwardRounded';
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
-
-// import { GithubPicker } from 'react-color'
+import SettingsIcon from '@material-ui/icons/Settings';
 
 import SessionSelector from './SessionSelector';
 import WordProposer from './WordProposer';
@@ -219,7 +218,7 @@ const Game = withRouter(({ history }) => {
             <Link href='/fictionary'>
               fictionary
             </Link>
-            <span style={{fontSize: 16, marginLeft: '24px', position: 'relative', top: '-8px'}}>
+            <span style={{fontSize: 16, marginLeft: '24px', position: 'relative', top: '-4px'}}>
               {sessionid}
             </span>
             <Tooltip title='copy game link'>
@@ -236,28 +235,27 @@ const Game = withRouter(({ history }) => {
         </Container>
 
         {/* players */}
-        <Box>
-          <Box p={1}>
-            <Grid item container>
-              {/* players */}
-              {ordered_players.map((player_mapped, idx) => {
-                return (
-                  <Grid item xs={playeritemwidth} key={`player.info.${player_mapped.id}`}>
-                    <PlayerCard 
-                      session={session}
-                      player={player_mapped}
-                      editable={player_mapped.id === player.id}
-                      onPlayerChange={(from: Player, to: Player) => {
-                        uji('modify_player', {id: sessionid, from: from, to: to});
-                        setPlayer(to);
-                      }}
-                    />
-                  </Grid>
-                );
-              })}
-            </Grid>
-          </Box>
+        <Box p={1} style={{paddingTop: 0}}>
+          <Grid item container>
+            {/* players */}
+            {ordered_players.map((player_mapped, idx) => {
+              return (
+                <Grid item xs={playeritemwidth} key={`player.info.${player_mapped.id}`}>
+                  <PlayerCard 
+                    session={session}
+                    player={player_mapped}
+                    editable={player_mapped.id === player.id}
+                    onPlayerChange={(from: Player, to: Player) => {
+                      uji('modify_player', {id: sessionid, from: from, to: to});
+                      setPlayer(to);
+                    }}
+                  />
+                </Grid>
+              );
+            })}
+          </Grid>
         </Box>
+        <Divider style={{marginLeft: '8px', marginRight: '8px'}}/>
         
         {/* words */}
         <Box flexGrow={1} style={{overflow: 'auto'}}>

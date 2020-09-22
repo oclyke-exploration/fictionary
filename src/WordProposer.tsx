@@ -6,8 +6,10 @@ import TextField from '@material-ui/core/TextField';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
+import SettingsIcon from '@material-ui/icons/Settings';
 
 const WordProposer = (props: {onSubmit: (word: string, definition: string) => void}) => {
   const [word, setWord] = useState('');
