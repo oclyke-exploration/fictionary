@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
@@ -37,6 +37,8 @@ const useStyles = makeStyles((theme: Theme) =>
 const SessionSelector = (props: {id: string, join: boolean, onChange: (event: any) => void, onSuggest: (event: any) => void, onSubmit: (event: any) => void}) => {
   const classes = useStyles();
 
+  const [clear, setClear] = useState<boolean>(false);
+
   return (
     <Paper component='form' className={classes.root}>
       <Tooltip title='suggest new session id'>
@@ -48,9 +50,29 @@ const SessionSelector = (props: {id: string, join: boolean, onChange: (event: an
       </Tooltip>
       <InputBase
         className={classes.input}
-        value={props.id}
+        value={(clear) ? '' : props.id}
         placeholder='game id'
-        onChange={props.onChange}
+        onFocus={(e) => {
+          setClear(true);
+        }}
+        onBlur={(e) => {
+          setClear(false);
+        }}
+        onChange={(e) => {
+          setClear(false);
+          props.onChange(e);
+          // e.preventDefault();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter'){
+            setClear(false);
+            props.onSubmit(e);
+          }
+        }}
+        // onSubmit={(e) => {
+        //   console.log('on submit');
+        //   e.preventDefault();
+        // }}
       />
       <Divider className={classes.divider} orientation="vertical" />
       <Tooltip title={(props.join) ? `join existing session '${props.id}'` : 'create new session'}>

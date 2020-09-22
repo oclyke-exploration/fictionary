@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 
-import {Player, Definition, Word, Session} from './Elements';
+import {Player, Session} from './Elements';
 
 const getScore = (session: Session, player: Player) => {
   // compute the player's score
@@ -21,13 +21,13 @@ const getScore = (session: Session, player: Player) => {
 
     let realdefs = word.definitions.filter(def => def.author.id === word.author.id);
     if(realdefs.length !== 1){
-      throw 'there should always be one and only one real definition!';
+      throw new Error('there should always be one and only one real definition!');
     }
     let realdef = realdefs[0];
 
     let playersdefs = word.definitions.filter(def => def.author.id === player.id);
     if(playersdefs.length > 1){
-      throw 'each player should have at most one definition'
+      throw new Error('each player should have at most one definition');
     }
     const playersdef = playersdefs[0];
 

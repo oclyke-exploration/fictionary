@@ -1,8 +1,7 @@
-import { O_RDONLY } from "constants";
 
-function hasOwnProperty<X extends {}, Y extends PropertyKey>(obj: X, prop: Y): obj is X & Record<Y, unknown> {
-  return obj.hasOwnProperty(prop)
-}
+// function hasOwnProperty<X extends {}, Y extends PropertyKey>(obj: X, prop: Y): obj is X & Record<Y, unknown> {
+//   return obj.hasOwnProperty(prop)
+// }
 
 class Player {
   id: string
@@ -94,7 +93,7 @@ class Word {
   static fromObj (obj: Word) {
     let real_defs = obj.definitions.filter(def => def.author.id === obj.author.id);
     let fake_defs = obj.definitions.filter(def => def.author.id !== obj.author.id);
-    if(real_defs.length !== 1){ throw 'word must contain one real definition'; }
+    if(real_defs.length !== 1){ throw new Error('word must contain one real definition'); }
     let word = new Word(obj.value, real_defs[0]);
     obj.voters.forEach((voter) => { word.addVoter(voter); });
     fake_defs.forEach(def => { word.addDefinition(def); });

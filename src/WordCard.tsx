@@ -1,9 +1,7 @@
 import React, {useState, useEffect} from 'react';
 
 import Box from '@material-ui/core/Box';
-import Paper from '@material-ui/core/Paper';
 import Card from '@material-ui/core/Card';
-import TextField from '@material-ui/core/TextField';
 
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
 // import Card from '@material-ui/core/Card';
@@ -11,16 +9,18 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 
-import Radio, { RadioProps } from '@material-ui/core/Radio';
+import Radio from '@material-ui/core/Radio';
 
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import InputBase from '@material-ui/core/InputBase';
 
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
+// import CloseRoundedIcon from '@material-ui/icons/CloseRounded';
 
-import {Player, Definition, Word, Session} from './Elements';
+import {Player, Definition, Word} from './Elements';
 
 const shuffle = (array: any[]) => {
   var m = array.length, t, i;
@@ -177,16 +177,18 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
             }}
           />
           <Divider className={classes.divider} orientation="vertical" />
-          <IconButton
-            disabled={posed.value === ''}
-            color='primary'
-            className={classes.iconButton}
-            onClick={(e) => {
-              pose();
-            }}
-          >
-            <SendRoundedIcon />
-          </IconButton>
+          <Tooltip title='submit phony definition'>
+            <IconButton
+              disabled={posed.value === ''}
+              color='primary'
+              className={classes.iconButton}
+              onClick={(e) => {
+                pose();
+              }}
+            >
+              <SendRoundedIcon />
+            </IconButton>
+          </Tooltip>
           </>}
 
         {defined && <>

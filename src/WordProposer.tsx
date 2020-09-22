@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import Divider from '@material-ui/core/Divider';

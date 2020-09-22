@@ -18,28 +18,24 @@ import {SocketPort} from './secrets';
 
 import ClipboardJS from 'clipboard';
 
-import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Container from '@material-ui/core/Container';
-import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
-import TextField from '@material-ui/core/TextField';
 import Divider from '@material-ui/core/Divider';
-import Radio, { RadioProps } from '@material-ui/core/Radio';
+import Radio from '@material-ui/core/Radio';
 
-import ChatRoundedIcon from '@material-ui/icons/Chat';
 import LaunchRoundedIcon from '@material-ui/icons/Launch';
-import EmailRoundedIcon from '@material-ui/icons/EmailRounded';
 import LoopRoundedIcon from '@material-ui/icons/LoopRounded';
 import AddCircleOutlineRoundedIcon from '@material-ui/icons/AddCircleOutlineRounded';
 import ArrowForwardRoundedIcon from '@material-ui/icons/ArrowForwardRounded';
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
 
-import { GithubPicker } from 'react-color'
+// import { GithubPicker } from 'react-color'
 
 import SessionSelector from './SessionSelector';
 import WordProposer from './WordProposer';
@@ -99,6 +95,8 @@ const useStyles = makeStyles({
   },
 });
 
+const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
+
 const Sluicebox = (props: {children: any}) => {
   return (
     <Grid container>
@@ -114,8 +112,6 @@ const Sluicebox = (props: {children: any}) => {
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
   let rootroute = useRouteMatch();
-
-  const [gohome, setGohome] = useState(false);
   
   const [player, setPlayer] = useState<Player>(new Player(suggestId()));
   const [session, setSession] = useState<Session>(new Session(sessionid).addPlayer(player));
@@ -154,9 +150,6 @@ const Game = withRouter(({ history }) => {
   //   }
   // });
   // const [session, setSession] = useState<Session>(test_session.addPlayer(player));
-
-
-  const [editing_username, setEditingUsername] = useState<boolean>(false);
 
   const shareurl = `https://games.oclyke.dev${rootroute.url}`;
 
@@ -323,12 +316,14 @@ const Games = (props: any) => {
   );
 }
 
+/**************************************************************
+                            Start Page
+**************************************************************/
+
 const Start = (props: any) => {
   const [sessionid, setSessionid] = useState(suggestId());
   const [idactive, setIDActive] = useState<boolean>(false);
   const [start, setStart] = useState(false);
-
-  const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
   const classes = useStyles();
   const bull = <span className={classes.bullet}>•</span>;
@@ -370,6 +365,7 @@ const Start = (props: any) => {
                   uji('idstatus', newid);
                 }}
                 onSubmit={(e) => {
+                  preventDefault(e);
                   setStart(true);
                 }}
               />
@@ -397,7 +393,7 @@ const Start = (props: any) => {
             <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
               <i>setup</i>
             </Typography>
-            <Typography>
+            <Typography component={'span'}>
               <ul style={{marginTop: 0, listStyle: 'none'}}>
                 <li>
                   <IconButton color='primary' size='small'>
@@ -432,7 +428,7 @@ const Start = (props: any) => {
             <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
               <i>gameplay</i>
             </Typography>
-            <Typography>
+            <Typography component={'span'}>
               <ul style={{marginTop: 0, listStyle: 'none'}}>
                 <li>
                   <IconButton color='primary' size='small'>
@@ -462,7 +458,7 @@ const Start = (props: any) => {
             <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
               <i>scoring as a voter</i>
             </Typography>
-            <Typography>
+            <Typography component={'span'}>
               <ul style={{marginTop: 0, listStyle: 'none'}}>
                 <li>
                   <span>+1 when your false definition is voted for</span>
@@ -475,7 +471,7 @@ const Start = (props: any) => {
             <Typography color='textSecondary' style={{marginBottom: '0px', paddingBottom: '0px'}}>
               <i>scoring as the proposer</i>
             </Typography>
-            <Typography>
+            <Typography component={'span'}>
               <ul style={{marginTop: 0, listStyle: 'none'}}>
                 <li>
                   <span>a point for every voter - if the real definition receives no votes</span>
@@ -491,6 +487,10 @@ const Start = (props: any) => {
             <Typography variant='subtitle2' align='center' style={{paddingBottom: '8px', paddingTop: '8px'}}>
               <Link href='https://oclyke.dev' target='_blank' rel='noreferrer'>
                 oclyke
+              </Link>
+              {bull}
+              <Link href='https://github.com/oclyke-exploration/fictionary' target='_blank' rel='noreferrer'>
+                GitHub
               </Link>
             </Typography>
           </Sluicebox>
