@@ -28,6 +28,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import Divider from '@material-ui/core/Divider';
 import Radio from '@material-ui/core/Radio';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 import LaunchRoundedIcon from '@material-ui/icons/Launch';
 import LoopRoundedIcon from '@material-ui/icons/LoopRounded';
@@ -111,6 +112,8 @@ const Sluicebox = (props: {children: any}) => {
 const Game = withRouter(({ history }) => {
   let { sessionid } = useParams();
   let rootroute = useRouteMatch();
+
+  const narrowscreen = !useMediaQuery('(min-width:450px)');
   
   const [player, setPlayer] = useState<Player>(new Player(suggestId()));
   const [session, setSession] = useState<Session>(new Session(sessionid).addPlayer(player));
@@ -218,9 +221,10 @@ const Game = withRouter(({ history }) => {
             <Link href='/fictionary'>
               fictionary
             </Link>
+            {!narrowscreen &&
             <span style={{fontSize: 16, marginLeft: '24px', position: 'relative', top: '-4px'}}>
               {sessionid}
-            </span>
+            </span>}
             <Tooltip title='copy game link'>
               <IconButton
                 className='copybtn'
