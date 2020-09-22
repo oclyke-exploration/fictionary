@@ -9,7 +9,6 @@ import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
-import SettingsIcon from '@material-ui/icons/Settings';
 
 const WordProposer = (props: {onSubmit: (word: string, definition: string) => void}) => {
   const [word, setWord] = useState('');
@@ -21,7 +20,7 @@ const WordProposer = (props: {onSubmit: (word: string, definition: string) => vo
     setDef('');
   }
 
-  return (
+  return <>
     <Box m={1} style={{width: '100%'}}>
       <Paper style={{backgroundColor: 'whitesmoke'}}>
         <Box p={1} display='flex'>
@@ -53,20 +52,21 @@ const WordProposer = (props: {onSubmit: (word: string, definition: string) => vo
               />
           </Box>
           <Box>
-            <IconButton
-              disabled={((word === '') || (def === ''))}
-              color='primary'
-              onClick={(e) => {
-                propose();
-              }}
-            >
-              <SendRoundedIcon />
-            </IconButton>
+            <Tooltip title='add word'>
+              <IconButton
+                disabled={((word === '') || (def === ''))}
+                color='primary'
+                onClick={(e) => {
+                  propose();
+                }}
+              >
+                <SendRoundedIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
       </Paper>
     </Box>
-  );
-}
+</>}
 
 export default WordProposer;

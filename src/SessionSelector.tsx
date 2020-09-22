@@ -39,7 +39,7 @@ const SessionSelector = (props: {id: string, join: boolean, onChange: (event: an
 
   const [clear, setClear] = useState<boolean>(false);
 
-  return (
+  return <>
     <Paper component='form' className={classes.root}>
       <Tooltip title='suggest new session id'>
         <IconButton color='secondary' className={classes.iconButton}
@@ -83,7 +83,6 @@ const SessionSelector = (props: {id: string, join: boolean, onChange: (event: an
         </IconButton>
       </Tooltip>
     </Paper>
-  );
-}
+</>}
 
 export default SessionSelector;

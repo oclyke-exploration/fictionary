@@ -109,57 +109,52 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
     setPosed(new Definition('', player));
   }
 
-  return (
+  return <>
     <Box m={1} >
       <Card className={classes.root}>
         <CardContent>
+
+          {/* word info */}
           <Typography variant="h6" component="h2">
             {props.word.value}
           </Typography>
         {!defined &&
           <Typography className={classes.title} color="textSecondary" gutterBottom>
             {`definitions: ${word.definitions.length}/${word.voters.length + 1}`}
-          </Typography>
-        }
+          </Typography>}
         {defined && !voted &&
           <Typography className={classes.title} color="textSecondary" gutterBottom>
             {`votes: ${votes}/${word.voters.length}`}
-          </Typography>
-        }
+          </Typography>}
           
-
+          {/* voting buttons */}
           <Box display='flex' flexDirection='column'>
-          {shuffled.filter(def => (!canvote || (def.author.id !== player.id))).map((def, idx) => { // this filter prevents players from voting on their own definitions
-            const isphony = (word.author.id !== def.author.id);
-            console.log(isphony);
-            return (
-              <Box key={`words.${word.value}.defs.${idx}`} fontWeight={(isphony || !voted) ? 'fontWeightLight' : 'fontWeightBold'}>
-                    
-              {canvote && !voted && 
-                <Radio
-                  style={{color: word.author.color}}
-                  checked={selected === idx}
-                  onChange={(e) => {
-                    if(selected === idx){
-                      setSelected(null);
-                    }else{
-                      setSelected(idx);
-                    }
-                  }}
-                  inputProps={{ 'aria-label': `definition ${idx}: ${def.value}` }}
-                />
-              }
-                {/* <Typography> */}
-                  {def.value}
-                {/* </Typography> */}
-              </Box>
-            );
-          })}
+        {shuffled.filter(def => (!canvote || (def.author.id !== player.id))).map((def, idx) => { // this filter prevents players from voting on their own definitions
+          const isphony = (word.author.id !== def.author.id);
+          console.log(isphony);
+          return <>
+            <Box key={`words.${word.value}.defs.${idx}`} fontWeight={(isphony || !voted) ? 'fontWeightLight' : 'fontWeightBold'}>
+            {canvote && !voted && 
+              <Radio
+                style={{color: word.author.color}}
+                checked={selected === idx}
+                onChange={(e) => {
+                  if(selected === idx){
+                    setSelected(null);
+                  }else{
+                    setSelected(idx);
+                  }
+                }}
+                inputProps={{ 'aria-label': `definition ${idx}: ${def.value}` }}
+              />}
+              {def.value}
+            </Box> </>})}
           </Box>
         </CardContent>
 
         <CardActions style={{backgroundColor: word.author.color}}>
 
+        {/* phony definition suggestion */}
         {canpose && <>
           <InputBase
             className={classes.input}
@@ -188,11 +183,10 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
             >
               <SendRoundedIcon />
             </IconButton>
-          </Tooltip>
-          </>}
+          </Tooltip> </>}
 
-        {defined && <>
-        {canvote && !voted && 
+        {/* vote confirmation */}
+        {defined && canvote && !voted && <>
           <Button
             disabled={(selected === null)}
             variant='contained'
@@ -206,14 +200,12 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
             }}
           >
             vote
-          </Button>
-        }
-        </>}
+          </Button> </>}
+
     
         </CardActions>
       </Card>
     </Box>
-  );
-}
+</>}
 
 export default WordCard;

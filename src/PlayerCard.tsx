@@ -74,99 +74,100 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
   const score = getScore(props.session, player);
 
   return <>
-  <Box p={1}>
-    <Paper
-      style={{backgroundColor: player.color}}
-      onClick={(e) => {
-        setEditing(true);
-      }}
-    >
-      <Box display='flex' flexDirection='row' alignItems='center' justifyContent='space-between'>
-        {(!editing || !props.editable) && <>
+    <Box p={1}>
+      <Paper
+        style={{backgroundColor: player.color}}
+        onClick={(e) => {
+          setEditing(true);
+        }}
+      >
+        <Box display='flex' flexDirection='row' alignItems='center' justifyContent='space-between'>
+
         {/* score + id */}
-        <Typography style={{paddingLeft: '8px', paddingTop: '4px', paddingBottom: '4px'}}>
-          {`${(score > 0) ? '+' : ''}${score} : `}{player.id}
-        </Typography>
-        </>}
+        {(!editing || !props.editable) && <>
+          <Typography style={{paddingLeft: '8px', paddingTop: '4px', paddingBottom: '4px'}}>
+            {`${(score > 0) ? '+' : ''}${score} : `}{player.id}
+          </Typography> </>}
 
-        {props.editable && editing &&
-        <Box flexGrow={1} style={{marginLeft: '8px'}}>
-          <InputBase
-            fullWidth
-            value={newid}
-            // size='small'
-            autoFocus={true}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            // onFocus={(e) => {
-            //   setEditId(true);
-            // }}
-            onChange={(e) => {
-              setNewId(e.target.value);
-              setIdChanged(true);
-              console.log('on change');
-            }}
-            onKeyDown={(e) => {
-              console.log(e.key);
-              if (e.key === 'Enter'){
-                setEditing(false);
-                let to = new Player((idchanged) ? newid : player.id);
-                to.setColor(player.color);
-                props.onPlayerChange(player, to);
-              }
-            }}
-            // onBlur={(e) => {
-            //   setEditId(false);
-            // }}
-          />
-        </Box>}
-
-        {/* edit / accept */}
-        {props.editable &&
-        <Box>
-          <Tooltip title={(editing) ? 'accept changes' : 'edit player'}>
-            <IconButton
-              color='primary'
-              size='small'
-              style={{ color: (editing) ? undefined : '#B6B6B6'}}
+        {/* id edit input */}
+        {props.editable && editing && <>
+          <Box flexGrow={1} style={{marginLeft: '8px'}}>
+            <InputBase
+              fullWidth
+              value={newid}
+              // size='small'
+              autoFocus={true}
               onClick={(e) => {
                 e.stopPropagation();
-                if(editing){
+              }}
+              // onFocus={(e) => {
+              //   setEditId(true);
+              // }}
+              onChange={(e) => {
+                setNewId(e.target.value);
+                setIdChanged(true);
+                console.log('on change');
+              }}
+              onKeyDown={(e) => {
+                console.log(e.key);
+                if (e.key === 'Enter'){
                   setEditing(false);
                   let to = new Player((idchanged) ? newid : player.id);
                   to.setColor(player.color);
                   props.onPlayerChange(player, to);
-                }else{
-                  setEditing(true);
                 }
               }}
-            >
-              {(editing) ? <CheckRoundedIcon /> : <SettingsIcon /> }
-            </IconButton>
-          </Tooltip>
-        </Box>}
+              // onBlur={(e) => {
+              //   setEditId(false);
+              // }}
+            />
+          </Box> </>}
 
-      </Box>
-    </Paper>
-  </Box>
-  {props.editable && editing && 
-  <Box p={1}>
-    <SliderPicker
-      color={newcolor}
-      onChange={(c) => {
-        setNewColor(c.hex);
-      }}
-      onChangeComplete={(c) => {
-        let to = new Player(player.id);
-        to.setColor(c.hex);
-        props.onPlayerChange(player, to);
-        console.log(c.hex);
-      }}
-    />
-  </Box>}
-  </>
-}
+        {/* edit / accept toggle button */}
+        {props.editable && <>
+          <Box>
+            <Tooltip title={(editing) ? 'accept changes' : 'edit player'}>
+              <IconButton
+                color='primary'
+                size='small'
+                style={{ color: (editing) ? undefined : '#B6B6B6'}}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if(editing){
+                    setEditing(false);
+                    let to = new Player((idchanged) ? newid : player.id);
+                    to.setColor(player.color);
+                    props.onPlayerChange(player, to);
+                  }else{
+                    setEditing(true);
+                  }
+                }}
+              >
+                {(editing) ? <CheckRoundedIcon /> : <SettingsIcon /> }
+              </IconButton>
+            </Tooltip>
+          </Box> </>}
+        </Box>
+      </Paper>
+    </Box>
+
+  {/* color selector */}
+  {props.editable && editing && <>
+    <Box p={1}>
+      <SliderPicker
+        color={newcolor}
+        onChange={(c) => {
+          setNewColor(c.hex);
+        }}
+        onChangeComplete={(c) => {
+          let to = new Player(player.id);
+          to.setColor(c.hex);
+          props.onPlayerChange(player, to);
+          console.log(c.hex);
+        }}
+      />
+    </Box> </>}
+</>}
 
 
 export default PlayerCard;
