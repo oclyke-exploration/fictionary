@@ -73,11 +73,13 @@ class Word {
   author: Player;
   voters: Player[];
   definitions: Definition[];
+  notvoted: Player[];
   constructor (value: string, definition: Definition) {
     this.value = value;
     this.author = definition.author;
     this.voters = [];
     this.definitions = [definition];
+    this.notvoted = [];
   }
 
   addVoter (voter: Player) {
@@ -97,6 +99,7 @@ class Word {
     let word = new Word(obj.value, real_defs[0]);
     obj.voters.forEach((voter) => { word.addVoter(voter); });
     fake_defs.forEach(def => { word.addDefinition(def); });
+    word.notvoted = obj.notvoted;
     return word;
   }
 
@@ -106,6 +109,32 @@ class Word {
 
   hasPosedBy (player: Player) {
     return (this.definitions.filter(def => player.equals(def.author)).length !== 0)
+  }
+
+  close () {
+    const word_voter_ids: string[] = [];
+    
+    // this.definitions.forEach(def => { def.votes.forEach(voter => { word_voter_ids.push(voter.id); }); }); // accumulate ids from people who have voted // actually that is wrong - we need to put in place votes for a 
+
+    this.definitions.filter(def => def.author.id !== this.author.id).forEach(def => word_voter_ids.push(def.author.id)); // anyone who has submitted a definition should remain in the voter list
+    const word_notvoter_ids: string[] = word_voter_ids;
+
+    this.definitions.forEach(def => {
+      def.votes.forEach(voter => {
+        console.log(`vote found on def: ${def.value}, voter: ${voter.id}`);
+        if(word_notvoter_ids.includes(voter.id)){
+          const idx = word_notvoter_ids.indexOf(voter.id);
+          word_notvoter_ids.splice(idx, 1);
+        }
+      })
+    });
+
+    console.log('word_notvoter_ids: ', word_notvoter_ids);
+
+    this.notvoted = this.voters.filter(voter => word_notvoter_ids.includes(voter.id));
+    this.voters = this.voters.filter(voter => word_voter_ids.includes(voter.id));
+
+    console.log('closing word', this, word_voter_ids);
   }
 }
 

@@ -245,6 +245,13 @@ const Game = withRouter(({ history }) => {
                   onVote={(selected) => {
                     uji('add_vote', {id: sessionid, word: word, definition: selected, voter: player});
                   }}
+                  onModifyWord={(from: Word, to: Word) => {
+                    console.log('todo: send modify word request');
+                    uji('modify_word', {id: sessionid, from: from, to: to});
+                  }}
+                  onRemoveWord={(word: Word) => {
+
+                  }}
                   />
               </Box> </>})}
             </Box>

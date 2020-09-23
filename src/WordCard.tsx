@@ -10,6 +10,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
+import Popover from '@material-ui/core/Popover';
 
 import Radio from '@material-ui/core/Radio';
 
@@ -18,7 +19,9 @@ import IconButton from '@material-ui/core/IconButton';
 import InputBase from '@material-ui/core/InputBase';
 
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
-// import CloseRoundedIcon from '@material-ui/icons/CloseRounded';
+import CloseRoundedIcon from '@material-ui/icons/CloseRounded';
+import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
+import SettingsIcon from '@material-ui/icons/Settings';
 
 import {Player, Definition, Word} from './Elements';
 
@@ -69,7 +72,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 })
 );
 
-const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: Definition) => void, onVote: (selected: Definition) => void}) => {
+const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: Definition) => void, onVote: (selected: Definition) => void, onModifyWord: (from: Word, to: Word) => void, onRemoveWord: (word: Word) => void}) => {
   const player = props.player;
   const word = props.word;
 
@@ -78,12 +81,15 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
 
   let votes = 0;
   word.definitions.forEach(def => { votes += def.votes.length; });
-  const voted = (votes === (word.voters.length));
+  const voted = (votes === (word.voters.length - word.notvoted.length));
   const defined = (word.definitions.length === (word.voters.length + 1));
 
   const [selected, setSelected] = useState<null | number>(null);
 
   const [shuffled, setShuffled] = useState<Definition[]>([]);
+
+  const [settingsanchorref, setSettingsAnchorRef] = React.useState<any>(null);
+  const showsettings = Boolean(settingsanchorref);
 
   useEffect(() => {
     if(defined){
@@ -115,17 +121,85 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
         <CardContent>
 
           {/* word info */}
-          <Typography variant="h6" component="h2">
-            {props.word.value}
-          </Typography>
-        {!defined &&
-          <Typography className={classes.title} color="textSecondary" gutterBottom>
-            {`definitions: ${word.definitions.length}/${word.voters.length + 1}`}
-          </Typography>}
-        {defined && !voted &&
-          <Typography className={classes.title} color="textSecondary" gutterBottom>
-            {`votes: ${votes}/${word.voters.length}`}
-          </Typography>}
+          <Box display='flex' flexDirection='row' alignItems='center' justifyContent='space-between'>
+            <Typography variant="h6" component="h2">
+              {props.word.value}
+            </Typography>
+
+          {/* word settings show/hide */}
+          {(!defined || !voted) && <>
+            <Tooltip title='settings'>
+              <IconButton
+                ref={settingsanchorref}
+                color='primary'
+                size='small'
+                style={{color: '#B6B6B6'}}
+                onClick={(e) => {
+                  setSettingsAnchorRef(e.currentTarget);
+                }}
+              >
+                <SettingsIcon />
+              </IconButton>
+            </Tooltip>
+
+
+            <Popover
+              // id={id}
+              open={showsettings}
+              anchorEl={settingsanchorref}
+              onClose={(e) => {
+                setSettingsAnchorRef(null);
+              }}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+              }}
+            >
+              <Box p={1} display='flex' flexDirection='column'>
+                <IconButton
+                  ref={settingsanchorref}
+                  color='primary'
+                  size='small'
+                  style={{color: '#B6B6B6'}}
+                  onClick={(e) => {
+                    console.log('user requests to remove this word');
+                    props.onRemoveWord(word);
+                  }}
+                >
+                  <CloseRoundedIcon />
+                </IconButton>
+
+                <IconButton
+                  ref={settingsanchorref}
+                  color='primary'
+                  size='small'
+                  style={{color: '#B6B6B6'}}
+                  onClick={(e) => {
+                    let to = Word.fromObj(word); // copy the existing word
+                    to.close();
+
+                    props.onModifyWord(word, to);
+                  }}
+                >
+                  <CheckRoundedIcon />
+                </IconButton>
+              </Box>
+            </Popover> </>}
+
+          </Box>
+          {!defined &&
+            <Typography className={classes.title} color="textSecondary" gutterBottom>
+              {`definitions: ${word.definitions.length}/${word.voters.length + 1}`}
+            </Typography>}
+          {defined && !voted &&
+            <Typography className={classes.title} color="textSecondary" gutterBottom>
+              {`votes: ${votes}/${word.voters.length}`}
+            </Typography>}
+            
           
           {/* voting buttons */}
           <Box display='flex' flexDirection='column'>

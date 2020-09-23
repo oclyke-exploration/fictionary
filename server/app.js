@@ -241,6 +241,41 @@ io.on('connection', (socket) => {
     return res;
   });
 
+  ujm('modify_word', async (event, req) => {
+    const id = req.id;
+    let from = Elements.Word.fromObj(req.from);
+    let to = Elements.Word.fromObj(req.to);
+    var res = false;
+
+    console.log('received request for modify word', from, to);
+
+    await requestReadSession(id).then( async (session) => {
+      const pull_update = {
+        $pull: {
+          words: {
+            value: from.value, // todo: need to provide a more positive match! (consider using totally unique ids... timestamp + random?)
+          },
+        },
+      }
+      const push_update = {
+        $push: {
+          words: to,
+        }
+      }
+      await requestUpdateSession(id, pull_update).then( async () => {
+        await requestUpdateSession(id, push_update).then( async () => {
+          res = true;
+          push(id);
+        })
+        .catch(e => console.warn(e));
+      })
+      .catch(e => console.warn(e));
+    })
+    .catch(e => console.warn(e));
+
+    return res;
+  });
+
   ujm('add_definition', async (event, req) => {
     const id = req.id;
     const word = Elements.Word.fromObj(req.word);
