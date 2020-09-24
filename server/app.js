@@ -331,6 +331,25 @@ io.on('connection', (socket) => {
     return res;
   });
 
+  ujm('delete_word', async (event, req) => {
+    const id = req.id;
+    let word = Elements.Word.fromAny(req.word);
+    var res = false;
+    const pull_update = {
+      $pull: {
+        words: {
+          uuid: word.uuid,
+        },
+      },
+    }
+    await requestUpdateSession(id, pull_update).then(() => {
+      res = true;
+      push(id);
+    })
+    .catch(e => console.warn(e));
+    return res;
+  });
+
   ujm('add_definition', async (event, req) => {
     const id = req.id;
     const word = Elements.Word.fromAny(req.word);

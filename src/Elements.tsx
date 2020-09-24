@@ -303,7 +303,7 @@ const computeScore = (session: Session, player: Player) => {
 
     // if the voter guesses the correct definition they are awarded +2 points
     // (word authors cannot vote and so cannot earn points this way)
-    if(real.votes.filter(voter => voter.equals(player)).length){
+    if(real.votes.filter(voter => voter.equals(player)).length !== 0){
       score += 2;
     }
 

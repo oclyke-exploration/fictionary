@@ -249,8 +249,8 @@ const Game = withRouter(({ history }) => {
                     console.log('todo: send modify word request');
                     uji('modify_word', {id: sessionid, from: from, to: to});
                   }}
-                  onRemoveWord={(word: Word) => {
-
+                  onDeleteWord={(word: Word) => {
+                    uji('delete_word', {id: sessionid, word: word});
                   }}
                   />
               </Box> </>})}
