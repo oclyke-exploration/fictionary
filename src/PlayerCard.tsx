@@ -12,56 +12,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 
 import { SliderPicker } from 'react-color'
 
-import {Player, Session} from './Elements';
-
-const getScore = (session: Session, player: Player) => {
-  // compute the player's score
-  let score = 0;
-  session.words.forEach(word => {
-
-    let votes = 0;
-    word.definitions.forEach(def => { votes += def.votes.length; });
-    const voted = (votes === (word.voters.length));
-    if(!voted){
-      return; // do not count words that have not been fully voted
-    }
-
-    let realdefs = word.definitions.filter(def => def.author.id === word.author.id);
-    if(realdefs.length !== 1){
-      throw new Error('there should always be one and only one real definition!');
-    }
-    let realdef = realdefs[0];
-
-    let playersdefs = word.definitions.filter(def => def.author.id === player.id);
-    if(playersdefs.length > 1){
-      throw new Error('each player should have at most one definition');
-    }
-    const playersdef = playersdefs[0];
-
-    // if the real definition is not selected at all the word author gets as many points as there were voters
-    if(word.author.id === player.id){
-      if(realdef.votes.length === 0){
-        score += word.voters.length;
-      }
-    }
-
-    // if the voter guesses the correct definition they are awarded +2 points
-    // (word authors cannot vote and so cannot earn points this way)
-    if(realdef.votes.map(voter => voter.id).includes(player.id)){
-      score += 2;
-    }
-
-    // players are awarded +1 point for every vote received by their phony definition
-    if(word.author.id !== player.id){ // ensures that word authors do not score for votes on the correct definition
-      if(typeof(playersdef) !== 'undefined'){
-        playersdef.votes.forEach(voter => {
-          score += 1;
-        });
-      }
-    }
-  });
-  return score;
-}
+import {Player, Session, computeScore} from './Elements';
 
 const PlayerCard = (props: {session: Session, player: Player, editable: boolean, onPlayerChange: (from: Player, to: Player) => void}) => {
   const player = props.player;
@@ -70,8 +21,12 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
   const [idchanged, setIdChanged] = useState<boolean>(false);
   const [newcolor, setNewColor] = useState('#ffffff');
   const [newid, setNewId] = useState('');
+  const confirmEdits = () => {
+    let to = Player.from(player).setName((idchanged) ? newid : player.name).setColor(player.color);
+    props.onPlayerChange(player, to);
+  }
 
-  const score = getScore(props.session, player);
+  const score = computeScore(props.session, player);
 
   return <>
     <Box p={1}>
@@ -86,7 +41,7 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
         {/* score + id */}
         {(!editing || !props.editable) && <>
           <Typography style={{paddingLeft: '8px', paddingTop: '4px', paddingBottom: '4px'}}>
-            {`${(score > 0) ? '+' : ''}${score} : `}{player.id}
+            {`${(score > 0) ? '+' : ''}${score} : `}{player.name}
           </Typography> </>}
 
         {/* id edit input */}
@@ -106,15 +61,11 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
               onChange={(e) => {
                 setNewId(e.target.value);
                 setIdChanged(true);
-                console.log('on change');
               }}
               onKeyDown={(e) => {
-                console.log(e.key);
                 if (e.key === 'Enter'){
                   setEditing(false);
-                  let to = new Player((idchanged) ? newid : player.id);
-                  to.setColor(player.color);
-                  props.onPlayerChange(player, to);
+                  confirmEdits();
                 }
               }}
               // onBlur={(e) => {
@@ -135,9 +86,7 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
                   e.stopPropagation();
                   if(editing){
                     setEditing(false);
-                    let to = new Player((idchanged) ? newid : player.id);
-                    to.setColor(player.color);
-                    props.onPlayerChange(player, to);
+                    confirmEdits();
                   }else{
                     setEditing(true);
                   }
@@ -160,8 +109,7 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
           setNewColor(c.hex);
         }}
         onChangeComplete={(c) => {
-          let to = new Player(player.id);
-          to.setColor(c.hex);
+          let to = Player.from(player).setColor(c.hex);
           props.onPlayerChange(player, to);
           console.log(c.hex);
         }}
@@ -171,4 +119,3 @@ const PlayerCard = (props: {session: Session, player: Player, editable: boolean,
 
 
 export default PlayerCard;
-export {getScore};

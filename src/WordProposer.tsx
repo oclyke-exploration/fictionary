@@ -10,16 +10,18 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import SendRoundedIcon from '@material-ui/icons/SendRounded';
 
-const WordProposer = (props: {onSubmit: (word: string, definition: string) => void}) => {
-  const [word, setWord] = useState('');
-  const [def, setDef] = useState('');
+import {Player, Definition, Word} from './Elements';
+
+const WordProposer = (props: {player: Player, onSubmit: (word: Word) => void}) => {
+  const [word, setWord] = useState<Word>(new Word().setAuthor(props.player));
+  const [def, setDef] = useState<Definition>(new Definition().setAuthor(props.player));
 
   const propose = () => {
-    props.onSubmit(word, def);
-    setWord('');
-    setDef('');
+    props.onSubmit(word);
+    setWord(new Word().setAuthor(props.player));
+    setDef(new Definition().setAuthor(props.player));
   }
-  const disabled = ((word === '') || (def === ''));
+  const disabled = ((word.value === '') || (def.value === ''));
 
   return <>
     <Box m={1} style={{width: '100%'}}>
@@ -27,14 +29,14 @@ const WordProposer = (props: {onSubmit: (word: string, definition: string) => vo
         <Box p={1} display='flex'>
           <Box>
             <TextField 
-              value={word}
+              value={word.value}
               label='new word'
               onChange={(e) => {
-                setWord(e.target.value);
+                setWord(Word.from(word).setValue(e.target.value));
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter'){
-                  if((word !== '') && (def !== '')){
+                  if((word.value !== '') && (def.value !== '')){
                     propose();
                   }
                 }
@@ -44,11 +46,13 @@ const WordProposer = (props: {onSubmit: (word: string, definition: string) => vo
           <Divider orientation="vertical" style={{height: '100%', margin: 4}}/>
           <Box flexGrow={1}>
             <TextareaAutosize
-              value={def}
+              value={def.value}
               placeholder='real definition' 
               style={{width: '100%', height: '90%'}}
               onChange={(e) => {
-                setDef(e.target.value);
+                const new_def = Definition.from(def).setValue(e.target.value);
+                setDef(new_def);
+                setWord(new Word().setValue(word.value).setAuthor(props.player).addDefinitions(new_def));
               }}
               />
           </Box>

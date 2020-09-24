@@ -40,9 +40,9 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SessionSelector from './SessionSelector';
 import WordProposer from './WordProposer';
 import WordCard from './WordCard';
-import PlayerCard, {getScore} from './PlayerCard';
+import PlayerCard from './PlayerCard';
 
-import {Player, Definition, Word, Session} from './Elements';
+import {Player, Definition, Word, Session, computeScore} from './Elements';
 
 var Sentencer = require('sentencer');
 
@@ -78,8 +78,8 @@ const ensureSocket = () => {
     return;
   }
   // socket = socketIOClient(`https://localhost:${443}`);
-  socket = socketIOClient(`https://localhost:${SocketPort}`);
-  // socket = socketIOClient(`https://games.oclyke.dev:${SocketPort}`);
+  // socket = socketIOClient(`https://localhost:${SocketPort}`);
+  socket = socketIOClient(`https://games.oclyke.dev:${SocketPort}`);
   console.log('socket created!', socket);
 }
 
@@ -119,8 +119,8 @@ const Game = withRouter(({ history }) => {
 
   const narrowscreen = !useMediaQuery('(min-width:450px)');
   
-  const [player, setPlayer] = useState<Player>(new Player(suggestId()));
-  const [session, setSession] = useState<Session>(new Session(sessionid).addPlayer(player));
+  const [player, setPlayer] = useState<Player>(new Player().setName(suggestId()));
+  const [session, setSession] = useState<Session>(new Session().setID(sessionid).addPlayers(player));
 
 
   const shareurl = `https://games.oclyke.dev${rootroute.url}`;
@@ -143,7 +143,7 @@ const Game = withRouter(({ history }) => {
 
 
   // make an ordered players list
-  const ordered_players = [...session.players.filter(p => p.id === player.id), ...session.players.filter(p => p.id !== player.id).sort((a, b) => getScore(session, b) - getScore(session, a))];
+  const ordered_players = [...session.players.filter(p => p.equals(player)), ...session.players.filter(p => !p.equals(player)).sort((a, b) => computeScore(session, b) - computeScore(session, a))];
 
   // an effect that runs on first render
   useEffect(() => {
@@ -161,7 +161,7 @@ const Game = withRouter(({ history }) => {
       const new_color = palette[((idx > 3) ? (2*(idx-4))+1 : 2*idx ) % palette.length];
 
       // set the 'to' color of this user
-      let to = new Player(player.id);
+      let to = Player.from(player);
       to.setColor(new_color);
 
       uji('modify_player', {id: sessionid, from: player, to: to});
@@ -173,7 +173,7 @@ const Game = withRouter(({ history }) => {
     })
 
     uje('session', (event, msg) => {
-      setSession(Session.fromUnknown(msg.res));
+      setSession(Session.fromAny(msg.res));
     });
 
     uji('join', session);
@@ -215,11 +215,11 @@ const Game = withRouter(({ history }) => {
       <Box p={1} style={{paddingTop: 0, paddingBottom: 0}}>
         <Grid item container>
           {ordered_players.map((player_mapped, idx) => { return <>
-          <Grid item xs={getPlayerItemWidth(session)} key={`player.info.${player_mapped.id}`}>
+          <Grid item xs={getPlayerItemWidth(session)} key={`player.${player_mapped.uuid}.info`}>
             <PlayerCard 
               session={session}
               player={player_mapped}
-              editable={player_mapped.id === player.id}
+              editable={player_mapped.equals(player)}
               onPlayerChange={(from: Player, to: Player) => {
                 uji('modify_player', {id: sessionid, from: from, to: to});
                 setPlayer(to);
@@ -235,7 +235,7 @@ const Game = withRouter(({ history }) => {
         <Sluicebox>
             <Box display='flex' flexDirection='column'>
               {session.words.map(word => { return <>
-              <Box key={`words.${word.value}`} style={{alignSelf: `flex-${(word.author.id === player.id) ? 'end' : 'start'}`}}>
+              <Box key={`words.${word.uuid}`} style={{alignSelf: `flex-${(word.author.equals(player)) ? 'end' : 'start'}`}}>
                 <WordCard
                   word={word}
                   player={player}
@@ -246,11 +246,10 @@ const Game = withRouter(({ history }) => {
                     uji('add_vote', {id: sessionid, word: word, definition: selected, voter: player});
                   }}
                   onModifyWord={(from: Word, to: Word) => {
-                    console.log('todo: send modify word request');
                     uji('modify_word', {id: sessionid, from: from, to: to});
                   }}
-                  onRemoveWord={(word: Word) => {
-
+                  onDeleteWord={(word: Word) => {
+                    uji('delete_word', {id: sessionid, word: word});
                   }}
                   />
               </Box> </>})}
@@ -262,8 +261,9 @@ const Game = withRouter(({ history }) => {
       <Box>
         <Sluicebox>
           <WordProposer
-            onSubmit={(word, def) => {
-              uji('add_word', {id: sessionid, word: new Word(word, new Definition(def, player))});
+            player={player}
+            onSubmit={(word) => {
+              uji('add_word', {id: sessionid, word: word});
             }}
             />
         </Sluicebox>
