@@ -76,43 +76,26 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
   const player = props.player;
   const word = props.word;
 
+  // html stuff
   const classes = useStyles();
-  const [posed, setPosed] = useState<Definition>(new Definition('', player));
-
-  let votes = 0;
-  word.definitions.forEach(def => { votes += def.votes.length; });
-  const voted = (votes === (word.voters.length - word.notvoted.length));
-  const defined = (word.definitions.length === (word.voters.length + 1));
-
-  const [selected, setSelected] = useState<null | number>(null);
-
-  const [shuffled, setShuffled] = useState<Definition[]>([]);
-
   const [settingsanchorref, setSettingsAnchorRef] = React.useState<any>(null);
   const showsettings = Boolean(settingsanchorref);
 
+  // definitions (posing: the one a player writes, shuffled: an array of all definitions shuffled once, selected: the index of the selected definition within the shuffled array)
+  const [posing, setPosing] = useState<Definition>(new Definition().setAuthor(player));
+  const [shuffled, setShuffled] = useState<Definition[]>([]);
+  const [selected, setSelected] = useState<null | number>(null);
+
+  const defined = word.posing_closed;
   useEffect(() => {
     if(defined){
       setShuffled(shuffle(word.definitions)); // only runs when defined changes to true (when all definitions provided)
     }
   }, [defined]);
 
-
-  const canpose = (player.isVoter(word) && !player.hasPosed(word));
-  // const canvote = (player.isVoter(word) && !player.hasVoted(word));
-  let hasvoted = false;
-  word.definitions.forEach(def => {
-    def.votes.forEach(voter => {
-      if(player.equals(voter)){
-        hasvoted = true;
-      }
-    });
-  });
-  const canvote = (player.isVoter(word) && !hasvoted);
-
   const pose = () => {
-    props.onPoseDefinition(posed);
-    setPosed(new Definition('', player));
+    props.onPoseDefinition(posing);
+    setPosing(new Definition().setAuthor(player));
   }
 
   return <>
@@ -127,7 +110,7 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
             </Typography>
 
           {/* word settings show/hide */}
-          {(!defined || !voted) && <>
+          {!word.voting_closed && <>
             <Tooltip title='settings'>
               <IconButton
                 ref={settingsanchorref}
@@ -166,7 +149,7 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
                   size='small'
                   style={{color: '#B6B6B6'}}
                   onClick={(e) => {
-                    console.log('user requests to remove this word');
+                    console.warn('need to implement word removal!');
                     props.onRemoveWord(word);
                   }}
                 >
@@ -179,10 +162,7 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
                   size='small'
                   style={{color: '#B6B6B6'}}
                   onClick={(e) => {
-                    let to = Word.fromObj(word); // copy the existing word
-                    to.close();
-
-                    props.onModifyWord(word, to);
+                    console.warn('need to implement the checkmark for moving on to the next step (either voting or closing the word)')
                   }}
                 >
                   <CheckRoundedIcon />
@@ -191,24 +171,23 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
             </Popover> </>}
 
           </Box>
-          {!defined &&
+          {!word.posing_closed &&
             <Typography className={classes.title} color="textSecondary" gutterBottom>
-              {`definitions: ${word.definitions.length}/${word.voters.length + 1}`}
+              {`definitions: ${word.definitions.length}/${word.committee.length + 1}`}
             </Typography>}
-          {defined && !voted &&
+          {word.posing_closed &&
             <Typography className={classes.title} color="textSecondary" gutterBottom>
-              {`votes: ${votes}/${word.voters.length}`}
+              {`votes: ${word.getNumberVoters()}/${word.committee.length}`}
             </Typography>}
             
           
           {/* voting buttons */}
-          <Box display='flex' flexDirection='column'>
-        {shuffled.filter(def => (!canvote || (def.author.id !== player.id))).map((def, idx) => { // this filter prevents players from voting on their own definitions
-          const isphony = (word.author.id !== def.author.id);
-          console.log(isphony);
+          {/* <Box display='flex' flexDirection='column'>
+        {shuffled.filter(def => !player.isAuthor(def) || word.voting_closed).map((def, idx) => { // this filter prevents players from voting on their own definitions
+          const isphony = (!word.author.equals(def.author));
           return <>
-            <Box key={`words.${word.value}.defs.${idx}`} fontWeight={(isphony || !voted) ? 'fontWeightLight' : 'fontWeightBold'}>
-            {canvote && !voted && 
+            <Box key={`words.${word.uuid}.defs.${def.uuid}`} fontWeight={(isphony || !word.voting_closed) ? 'fontWeightLight' : 'fontWeightBold'}>
+            {player.canVote(word) && 
               <Radio
                 style={{color: word.author.color}}
                 checked={selected === idx}
@@ -221,46 +200,69 @@ const WordCard = (props: {word: Word, player: Player, onPoseDefinition: (posed: 
                 }}
                 inputProps={{ 'aria-label': `definition ${idx}: ${def.value}` }}
               />}
-              {def.value}
-            </Box> </>})}
-          </Box>
+              {(word.voting_closed || player.canVote(word) || player.isAuthor(word)) && def.value}
+            </Box> </>})} */}
+
+          {shuffled.filter(def => (!word.voting_closed ? (!player.hasVoted(word) ? (!player.isAuthor(word) ? !player.isAuthor(def) : true) : true) : true)).map((def, idx) => {
+            return <>
+              <Box fontWeight={(!def.author.equals(word.author) || !word.voting_closed) ? 'fontWeightLight' : 'fontWeightBold'} key={`words.${word.uuid}.defs.${def.uuid}`}>
+              {word.posing_closed && player.canVote(word) && 
+                <Radio
+                  style={{color: word.author.color}}
+                  checked={selected === idx}
+                  onChange={(e) => {
+                    setSelected((selected === idx) ? null : idx);
+                  }}
+                  inputProps={{ 'aria-label': `definition ${idx}: ${def.value}` }}
+                />}
+                
+                {def.value}
+              </Box>
+            </>})}
+
+
+
+            
+          {/* </Box> */}
         </CardContent>
 
         <CardActions style={{backgroundColor: word.author.color}}>
 
         {/* phony definition suggestion */}
-        {canpose && <>
+        {player.canPose(word) && <>
           <InputBase
             className={classes.input}
-            value={posed.value}
+            value={posing.value}
             placeholder='phony definition'
             onChange={(e) => {
-              setPosed(new Definition(e.target.value, player));
+              setPosing(new Definition().setValue(e.target.value).setAuthor(player));
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                if(posed.value !== ''){
+                if(posing.value !== ''){
                   pose();
                 }
               }
             }}
           />
           <Divider className={classes.divider} orientation="vertical" />
-          <Tooltip title='submit phony definition'>
-            <IconButton
-              disabled={posed.value === ''}
-              color='primary'
-              className={classes.iconButton}
-              onClick={(e) => {
-                pose();
-              }}
-            >
-              <SendRoundedIcon />
-            </IconButton>
+          <Tooltip title={`${(posing.value === '') ? 'phony definition required' : 'pose phony definition'}`}>
+            <span>
+              <IconButton
+                disabled={posing.value === ''}
+                color='primary'
+                className={classes.iconButton}
+                onClick={(e) => {
+                  pose();
+                }}
+              >
+                <SendRoundedIcon />
+              </IconButton>
+            </span>
           </Tooltip> </>}
 
         {/* vote confirmation */}
-        {defined && canvote && !voted && <>
+        {word.posing_closed && player.canVote(word) && <>
           <Button
             disabled={(selected === null)}
             variant='contained'
